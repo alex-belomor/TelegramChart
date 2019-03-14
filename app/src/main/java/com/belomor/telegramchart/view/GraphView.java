@@ -24,6 +24,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import butterknife.OnClick;
 
 public class GraphView extends FrameLayout {
 
@@ -35,6 +36,8 @@ public class GraphView extends FrameLayout {
     Rect bounds;
     Paint paint;
 
+    float multiplier = 1f;
+
     public GraphView(@NonNull Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
         View view = LayoutInflater.from(context).inflate(R.layout.belomor_chart, null);
@@ -45,7 +48,19 @@ public class GraphView extends FrameLayout {
 
     public void setData(ArrayList<ModelChart> chartList, int maxFollowers) {
         mGraph.setChartData(chartList);
-        mGraph.getLayoutParams().width = chartList.get(0).getColumnSize(1) * 100 - 100;
+//        mGraph.getLayoutParams().width = chartList.get(0).getColumnSize(1) * 100 - 100;
 //        mGraph.setScaleX(0.5f);
+    }
+
+    @OnClick(R.id.decrease_btn)
+    void onDecrease() {
+        multiplier -= 0.01f;
+        mGraph.setMultiplier(multiplier);
+    }
+
+    @OnClick(R.id.increase_btn)
+    void onIncrease() {
+        multiplier += 0.01f;
+        mGraph.setMultiplier(multiplier);
     }
 }

@@ -2,4 +2,5 @@
 <resources>
     <dimen name="chart_height">350dp</dimen>
     <dimen name="text_medium">18sp</dimen>
+    <dimen name="graph_seek_heigh">50dp</dimen>
 </resources>

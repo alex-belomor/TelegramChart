@@ -11,4 +11,7 @@
 
     <color name="text_color_primary_dark">#fff</color>
     <color name="text_color_primary_light">#000</color>
+
+
+    <color name="seek_color">#39374D5C</color>
 </resources>

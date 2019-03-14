@@ -3,23 +3,28 @@ package com.belomor.telegramchart.view;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
-import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Path;
+import android.graphics.Rect;
 import android.util.AttributeSet;
 import android.view.View;
-import android.widget.LinearLayout;
 
 import com.belomor.telegramchart.data.ModelChart;
 
 import java.util.ArrayList;
 
 import androidx.annotation.Nullable;
-import androidx.constraintlayout.widget.ConstraintLayout;
 
 public class GraphView2 extends View {
 
     private ArrayList<ModelChart> data;
+
+    private float multiplier = 1f;
+    private float heightPerUser = 0f;
+
+    private int height, width;
+
+    private int from, to;
 
     private Paint paint;
 
@@ -31,12 +36,28 @@ public class GraphView2 extends View {
         paint.setStrokeWidth(6f);
 
         setRotationX(180);
+
+
 //        setScaleX(0.1f);
+    }
+
+    @Override
+    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+
+        height = MeasureSpec.getSize(heightMeasureSpec);
+        width = MeasureSpec.getSize(widthMeasureSpec);
     }
 
     public void setChartData(ArrayList<ModelChart> data) {
         this.data = data;
+
         requestLayout();
+    }
+
+    public void setMultiplier(float multiplier) {
+        this.multiplier = multiplier;
+        invalidate();
     }
 
     @Override
@@ -44,37 +65,34 @@ public class GraphView2 extends View {
         super.onDraw(canvas);
 
         if (data != null) {
-            drawData(canvas, data.get(0));
+            drawData(canvas, data.get(0), from, to);
         }
-
-//        Matrix matrix = new Matrix();
-//        matrix.postRotate(45f);
-//        canvas.save();
-//        canvas.concat(matrix);
-//        canvas.restore();
     }
 
-    private void drawData(Canvas canvas, ModelChart modelChart) {
 
+    private void drawData(Canvas canvas, ModelChart modelChart, int from, int to) {
+        heightPerUser = (float) height / (float) modelChart.getColumns().get(1).getMaxValue();
         float latestX = 0;
-        float latestY = 0;
 
         canvas.drawColor(Color.WHITE);
+
+        paint.setAntiAlias(true);
 
         String color = modelChart.getColor().getY1();
         paint.setColor(Color.parseColor(color));
         paint.setStyle(Paint.Style.STROKE);
-        float[] points = new float[modelChart.getColumnSize(1) * 2 + 2];
 
         Path p = new Path();
-        p.moveTo(0, 0);
+        p.moveTo(0f, modelChart.getColumnInt(1, 0));
 
         for (int i = 1; i < modelChart.getColumnSize(1); i++) {
-            p.lineTo(latestX + 100, modelChart.getColumnInt(1, i) * 5);
-            latestX = latestX + 100;
+            p.lineTo(latestX + (100f * multiplier), modelChart.getColumnInt(1, i) * heightPerUser);
+            latestX = latestX + (100f * multiplier);
         }
 
         canvas.drawPath(p, paint);
+
+//            postInvalidateDelayed(200);
     }
 
 

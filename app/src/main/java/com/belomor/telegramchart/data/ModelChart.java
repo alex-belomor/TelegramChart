@@ -2,13 +2,13 @@ package com.belomor.telegramchart.data;
 
 import com.google.gson.annotations.SerializedName;
 
-import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.List;
 
-public class ModelChart implements Serializable {
+public class ModelChart {
 
     @SerializedName("columns")
-    private ArrayList<ArrayList<Object>> columns;
+    private ArrayList<Column> columns;
 
     @SerializedName("types")
     private ChartType type;
@@ -24,15 +24,15 @@ public class ModelChart implements Serializable {
     }
 
     public int getColumnSize(int posColumn) {
-        return (int) columns.get(posColumn).size() - 1;
+        return columns.get(posColumn).size() - 1;
     }
 
     public String getColumnName(int posColumn) {
         return (String) columns.get(posColumn).get(0);
     }
 
-    public void setColumns(ArrayList<ArrayList<Object>> columns) {
-        this.columns = columns;
+    public List<Column> getColumns() {
+        return columns;
     }
 
     public ChartType getType() {
@@ -59,7 +59,7 @@ public class ModelChart implements Serializable {
         this.color = color;
     }
 
-    public class ChartColor implements Serializable {
+    public class ChartColor {
 
         @SerializedName("y0")
         private String y0;
@@ -106,7 +106,7 @@ public class ModelChart implements Serializable {
         }
     }
 
-    public class ChartName implements Serializable {
+    public class ChartName {
 
         @SerializedName("y0")
         private String y0;
@@ -153,7 +153,7 @@ public class ModelChart implements Serializable {
         }
     }
 
-    public class ChartType implements Serializable {
+    public class ChartType {
 
         @SerializedName("y0")
         private String y0;

@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="@dimen/graph_seek_heigh"
+    android:orientation="vertical">
+
+    <View
+        android:id="@+id/graph_mini"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <View
+        android:id="@+id/overlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <FrameLayout
+        android:layout_width="120dp"
+        android:layout_height="match_parent">
+
+        <ImageView
+            android:id="@+id/from"
+            android:layout_width="18dp"
+            android:layout_height="match_parent"
+            android:layout_gravity="left"
+            android:background="?selectableItemBackgroundBorderless"
+            android:clickable="true"
+            android:paddingRight="12dp"
+            android:src="@color/seek_color" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="2dp"
+            android:layout_marginLeft="6dp"
+            android:layout_marginRight="6dp"
+            android:background="@color/seek_color" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="2dp"
+            android:layout_gravity="bottom"
+            android:layout_marginLeft="6dp"
+            android:layout_marginRight="6dp"
+            android:background="@color/seek_color" />
+
+        <ImageView
+            android:id="@+id/to"
+            android:layout_width="18dp"
+            android:layout_height="match_parent"
+            android:layout_gravity="right"
+            android:background="?selectableItemBackgroundBorderless"
+            android:clickable="true"
+            android:paddingLeft="12dp"
+            android:src="@color/seek_color" />
+
+    </FrameLayout>
+
+
+</FrameLayout>
