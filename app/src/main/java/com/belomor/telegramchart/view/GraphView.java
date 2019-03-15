@@ -3,20 +3,15 @@ package com.belomor.telegramchart.view;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
-import android.graphics.drawable.BitmapDrawable;
-import android.util.ArrayMap;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.FrameLayout;
-import android.widget.ImageView;
 
 import com.belomor.telegramchart.R;
 import com.belomor.telegramchart.data.ModelChart;
-import com.belomor.telegramchart.data.TestChartData;
 
 import java.util.ArrayList;
 
@@ -24,12 +19,14 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import butterknife.BindView;
 import butterknife.ButterKnife;
-import butterknife.OnClick;
 
 public class GraphView extends FrameLayout {
 
     @BindView(R.id.graph_component)
     GraphView2 mGraph;
+
+    @BindView(R.id.graph_seek)
+    GraphSeek mGraphSeek;
 
     Bitmap frame;
     Canvas frameDrawer;
@@ -48,6 +45,7 @@ public class GraphView extends FrameLayout {
 
     public void setData(ArrayList<ModelChart> chartList, int maxFollowers) {
         mGraph.setChartData(chartList);
+        mGraphSeek.setChartData(chartList);
 //        mGraph.getLayoutParams().width = chartList.get(0).getColumnSize(1) * 100 - 100;
 //        mGraph.setScaleX(0.5f);
     }

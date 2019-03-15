@@ -1,6 +1,10 @@
 package com.belomor.telegramchart.view;
 
 import android.content.Context;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.Path;
 import android.graphics.Rect;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
@@ -10,6 +14,9 @@ import android.widget.FrameLayout;
 import android.widget.ImageView;
 
 import com.belomor.telegramchart.R;
+import com.belomor.telegramchart.data.ModelChart;
+
+import java.util.ArrayList;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -27,12 +34,20 @@ public class GraphSeek extends FrameLayout {
     @BindView(R.id.to)
     ImageView mTo;
 
+    @BindView(R.id.graph_seek_view)
+    SeekView mSeekView;
+
+    private int height = 0;
+    private int width = 0;
+
     private int xDelta;
     private int yDelta;
     private int xStart;
     private int margin;
     private int startMarginFrom;
     private int startMarginTo;
+
+    private ArrayList<ModelChart> data;
 
 
     public GraphSeek(@NonNull Context context, @Nullable AttributeSet attrs) {
@@ -48,12 +63,14 @@ public class GraphSeek extends FrameLayout {
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
 
-        Rect myViewRect = new Rect();
-        getGlobalVisibleRect(myViewRect);
-        float x = myViewRect.left;
-        float y = myViewRect.top;
+        height = MeasureSpec.getSize(heightMeasureSpec);
+        width = MeasureSpec.getSize(widthMeasureSpec);
+    }
 
-        float parentX = getX();
+    public void setChartData(ArrayList<ModelChart> data) {
+        this.data = data;
+
+        mSeekView.setChartData(data);
     }
 
     @OnTouch(R.id.to)
@@ -158,9 +175,6 @@ public class GraphSeek extends FrameLayout {
         }
 
         invalidate();
-
         return false;
     }
-
-
 }
