@@ -7,6 +7,8 @@ import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.Rect;
 import android.util.AttributeSet;
+import android.view.SurfaceHolder;
+import android.view.SurfaceView;
 import android.view.View;
 
 import com.belomor.telegramchart.data.ModelChart;
@@ -15,9 +17,11 @@ import java.util.ArrayList;
 
 import androidx.annotation.Nullable;
 
-public class GraphView2 extends View {
+public class GraphView2 extends SurfaceView implements SurfaceHolder.Callback{
 
     private ArrayList<ModelChart> data;
+
+    private GraphViewChartThread chartThread;
 
     private float multiplier = 1f;
     private float heightPerUser = 0f;
@@ -39,9 +43,7 @@ public class GraphView2 extends View {
         paint.setStrokeWidth(6f);
 
         setRotationX(180);
-
-
-//        setScaleX(0.1f);
+        getHolder().addCallback(this);
     }
 
     @Override
@@ -66,7 +68,10 @@ public class GraphView2 extends View {
         this.end = end;
         this.count = end - start;
 
-        requestLayout();
+        if (chartThread != null && chartThread.isAlive())
+            chartThread.interrupt();
+        chartThread = new GraphViewChartThread(getHolder(), getContext(), data.get(0), width, height, start, end, count);
+        chartThread.start();
     }
 
     public void setMultiplier(float multiplier) {
@@ -111,4 +116,19 @@ public class GraphView2 extends View {
     }
 
 
+    @Override
+    public void surfaceCreated(SurfaceHolder holder) {
+//        chartThread = new GraphViewChartThread(getHolder(), getContext(), data.get(0));
+//        chartThread.start();
+    }
+
+    @Override
+    public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+
+    }
+
+    @Override
+    public void surfaceDestroyed(SurfaceHolder holder) {
+
+    }
 }
