@@ -30,14 +30,7 @@ public class GraphView extends FrameLayout {
     @BindView(R.id.graph_seek)
     GraphSeek mGraphSeek;
 
-
     int start, end;
-    Bitmap frame;
-    Canvas frameDrawer;
-    Rect bounds;
-    Paint paint;
-
-    float multiplier = 1f;
 
     public GraphView(@NonNull Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
@@ -51,14 +44,12 @@ public class GraphView extends FrameLayout {
             public void onLeftChange(int pos) {
                 start = pos;
                 mGraph.rangeChart(start, end);
-                Log.d("SUKABLYAT_LEFT", pos + "");
             }
 
             @Override
             public void onRightChange(int pos) {
                 end = pos - 1;
                 mGraph.rangeChart(start, end);
-                Log.d("SUKABLYAT_RIGHT", pos + "");
             }
         });
     }
@@ -66,19 +57,5 @@ public class GraphView extends FrameLayout {
     public void setData(ArrayList<ModelChart> chartList, int maxFollowers) {
         mGraph.setChartData(chartList, start, end);
         mGraphSeek.setChartData(chartList);
-//        mGraph.getLayoutParams().width = chartList.get(0).getColumnSize(1) * 100 - 100;
-//        mGraph.setScaleX(0.5f);
     }
-
-//    @OnClick(R.id.decrease_btn)
-//    void onDecrease() {
-//        multiplier -= 0.01f;
-//        mGraph.setMultiplier(multiplier);
-//    }
-//
-//    @OnClick(R.id.increase_btn)
-//    void onIncrease() {
-//        multiplier += 0.01f;
-//        mGraph.setMultiplier(multiplier);
-//    }
 }
