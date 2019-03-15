@@ -52,15 +52,15 @@ public class GraphView extends FrameLayout {
 //        mGraph.setScaleX(0.5f);
     }
 
-    @OnClick(R.id.decrease_btn)
-    void onDecrease() {
-        multiplier -= 0.01f;
-        mGraph.setMultiplier(multiplier);
-    }
-
-    @OnClick(R.id.increase_btn)
-    void onIncrease() {
-        multiplier += 0.01f;
-        mGraph.setMultiplier(multiplier);
-    }
+//    @OnClick(R.id.decrease_btn)
+//    void onDecrease() {
+//        multiplier -= 0.01f;
+//        mGraph.setMultiplier(multiplier);
+//    }
+//
+//    @OnClick(R.id.increase_btn)
+//    void onIncrease() {
+//        multiplier += 0.01f;
+//        mGraph.setMultiplier(multiplier);
+//    }
 }
