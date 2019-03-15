@@ -50,7 +50,7 @@ public class GraphSeek extends FrameLayout {
     private int startMarginTo;
     private int finalMarginTo;
 
-    private ArrayList<ModelChart> data;
+    private ModelChart data;
 
     private float widthPerItem;
 
@@ -73,16 +73,16 @@ public class GraphSeek extends FrameLayout {
         width = MeasureSpec.getSize(widthMeasureSpec);
 
         if (data != null)
-        widthPerItem = width / (float) data.get(0).getColumns().get(1).size();
+        widthPerItem = width / (float) data.getColumns().get(1).size();
     }
 
     public void setOnSeekListener(SeekListener seekListener) {
         this.seekListener = seekListener;
     }
 
-    public void setChartData(ArrayList<ModelChart> data) {
+    public void setChartData(ModelChart data) {
         this.data = data;
-        widthPerItem = width / (float) data.get(0).getColumns().get(1).size();
+        widthPerItem = width / (float) data.getColumns().get(1).size();
 
         mSeekView.setChartData(data);
     }

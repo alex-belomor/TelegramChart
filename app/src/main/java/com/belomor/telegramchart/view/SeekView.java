@@ -17,7 +17,7 @@ import androidx.annotation.Nullable;
 
 public class SeekView extends View {
 
-    private ArrayList<ModelChart> data;
+    private ModelChart data;
 
     private float multiplier = 1f;
     private float heightPerUser = 0f;
@@ -49,7 +49,7 @@ public class SeekView extends View {
         width = MeasureSpec.getSize(widthMeasureSpec);
     }
 
-    public void setChartData(ArrayList<ModelChart> data) {
+    public void setChartData(ModelChart data) {
         this.data = data;
 
         requestLayout();
@@ -65,7 +65,7 @@ public class SeekView extends View {
         super.onDraw(canvas);
 
         if (data != null) {
-            drawData(canvas, data.get(0));
+            drawData(canvas, data);
         }
     }
 
