@@ -12,7 +12,7 @@
         android:paddingLeft="18dp"
         android:paddingTop="20dp"
         android:text="@string/followers"
-        android:textColor="?android:textColorPrimary"
+        android:textColor="?android:colorAccent"
         android:textSize="@dimen/text_medium"
         android:textStyle="bold"
         app:layout_constraintLeft_toLeftOf="parent"

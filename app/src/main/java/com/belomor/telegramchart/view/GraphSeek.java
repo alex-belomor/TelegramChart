@@ -14,6 +14,7 @@ import android.widget.FrameLayout;
 import android.widget.ImageView;
 
 import com.belomor.telegramchart.R;
+import com.belomor.telegramchart.SeekListener;
 import com.belomor.telegramchart.data.ModelChart;
 
 import java.util.ArrayList;
@@ -45,10 +46,15 @@ public class GraphSeek extends FrameLayout {
     private int xStart;
     private int margin;
     private int startMarginFrom;
+    private int finalMarginFrom;
     private int startMarginTo;
+    private int finalMarginTo;
 
     private ArrayList<ModelChart> data;
 
+    private float widthPerItem;
+
+    private SeekListener seekListener;
 
     public GraphSeek(@NonNull Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
@@ -65,10 +71,18 @@ public class GraphSeek extends FrameLayout {
 
         height = MeasureSpec.getSize(heightMeasureSpec);
         width = MeasureSpec.getSize(widthMeasureSpec);
+
+        if (data != null)
+        widthPerItem = width / (float) data.get(0).getColumns().get(1).size();
+    }
+
+    public void setOnSeekListener(SeekListener seekListener) {
+        this.seekListener = seekListener;
     }
 
     public void setChartData(ArrayList<ModelChart> data) {
         this.data = data;
+        widthPerItem = width / (float) data.get(0).getColumns().get(1).size();
 
         mSeekView.setChartData(data);
     }
@@ -94,9 +108,14 @@ public class GraphSeek extends FrameLayout {
                 if (layoutParams.rightMargin < 0)
                     layoutParams.rightMargin = 0;
 
+                finalMarginTo = layoutParams.rightMargin;
+
                 view.setLayoutParams(layoutParams);
                 break;
         }
+
+        int change = (int) ((width - finalMarginTo) / widthPerItem);
+        seekListener.onRightChange(change);
 
         invalidate();
         return false;
@@ -123,9 +142,14 @@ public class GraphSeek extends FrameLayout {
                 if (layoutParams.leftMargin < 0)
                     layoutParams.leftMargin = 0;
 
+                finalMarginFrom = layoutParams.leftMargin;
+
                 view.setLayoutParams(layoutParams);
                 break;
         }
+
+        int change = (int) (finalMarginFrom / widthPerItem);
+        seekListener.onLeftChange(change);
 
         invalidate();
         return false;
@@ -167,12 +191,19 @@ public class GraphSeek extends FrameLayout {
                     lParamsTo1.rightMargin = startMarginTo - x;
                 }
 
+                finalMarginFrom = lParamsFrom1.leftMargin;
+                finalMarginTo = lParamsTo1.rightMargin;
 
                 mFrom.setLayoutParams(lParamsFrom1);
                 mTo.setLayoutParams(lParamsTo1);
 
                 break;
         }
+
+        int changeFrom = (int) (finalMarginFrom / widthPerItem);
+        int changeTo = (int) ((width - finalMarginTo) / widthPerItem);
+        seekListener.onLeftChange(changeFrom);
+        seekListener.onRightChange(changeTo);
 
         invalidate();
         return false;

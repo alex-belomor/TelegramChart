@@ -21,10 +21,13 @@ public class GraphView2 extends View {
 
     private float multiplier = 1f;
     private float heightPerUser = 0f;
+    private float widthPerSize = 0f;
 
     private int height, width;
 
     private int from, to;
+
+    private int start, end, count;
 
     private Paint paint;
 
@@ -49,8 +52,19 @@ public class GraphView2 extends View {
         width = MeasureSpec.getSize(widthMeasureSpec);
     }
 
-    public void setChartData(ArrayList<ModelChart> data) {
+    public void setChartData(ArrayList<ModelChart> data, int start, int end) {
         this.data = data;
+        this.start = start;
+        this.end = end;
+        this.count = end - start;
+
+        requestLayout();
+    }
+
+    public void rangeChart(int start, int end) {
+        this.start = start;
+        this.end = end;
+        this.count = end - start;
 
         requestLayout();
     }
@@ -65,13 +79,14 @@ public class GraphView2 extends View {
         super.onDraw(canvas);
 
         if (data != null) {
-            drawData(canvas, data.get(0), from, to);
+            drawData(canvas, data.get(0));
         }
     }
 
 
-    private void drawData(Canvas canvas, ModelChart modelChart, int from, int to) {
+    private void drawData(Canvas canvas, ModelChart modelChart) {
         heightPerUser = (float) height / (float) modelChart.getColumns().get(1).getMaxValue();
+        widthPerSize = (float) width / (float) count;
         float latestX = 0;
 
         canvas.drawColor(Color.WHITE);
@@ -83,11 +98,11 @@ public class GraphView2 extends View {
         paint.setStyle(Paint.Style.STROKE);
 
         Path p = new Path();
-        p.moveTo(0f, modelChart.getColumnInt(1, 0));
+        p.moveTo(0f, modelChart.getColumnInt(1, start) * heightPerUser);
 
-        for (int i = 1; i < modelChart.getColumnSize(1); i++) {
-            p.lineTo(latestX + (100f * multiplier), modelChart.getColumnInt(1, i) * heightPerUser);
-            latestX = latestX + (100f * multiplier);
+        for (int i = start+1; i < end; i++) {
+            p.lineTo(latestX + widthPerSize, modelChart.getColumnInt(1, i) * heightPerUser);
+            latestX = latestX + widthPerSize;
         }
 
         canvas.drawPath(p, paint);

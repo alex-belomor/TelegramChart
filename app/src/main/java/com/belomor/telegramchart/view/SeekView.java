@@ -65,14 +65,14 @@ public class SeekView extends View {
         super.onDraw(canvas);
 
         if (data != null) {
-            drawData(canvas, data.get(0), from, to);
+            drawData(canvas, data.get(0));
         }
     }
 
 
-    private void drawData(Canvas canvas, ModelChart modelChart, int from, int to) {
+    private void drawData(Canvas canvas, ModelChart modelChart) {
         heightPerUser = (float) height / (float) modelChart.getColumns().get(1).getMaxValue();
-        widthPerSize = (float) width / (float) modelChart.getColumns().get(1).size();
+        widthPerSize = (float) width / (float) (modelChart.getColumns().get(1).size() - 2);
         float latestX = 0;
 
         canvas.drawColor(Color.WHITE);

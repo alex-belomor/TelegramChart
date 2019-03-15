@@ -21,4 +21,9 @@ public class Column extends ArrayList {
 
             return maxValue;
         }
+
+    @Override
+    public int size() {
+        return super.size() - 1;
+    }
 }
