@@ -85,7 +85,7 @@ public class GraphView2 extends View {
 
 
     private void drawData(Canvas canvas, ModelChart modelChart) {
-        heightPerUser = (float) height / (float) modelChart.getColumns().get(1).getMaxValue();
+        heightPerUser = (float) height / (float) modelChart.getColumns().get(1).getMaxValueInInterval(start, end);
         widthPerSize = (float) width / (float) count;
         float latestX = 0;
 

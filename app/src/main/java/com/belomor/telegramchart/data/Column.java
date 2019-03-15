@@ -22,6 +22,16 @@ public class Column extends ArrayList {
             return maxValue;
         }
 
+        public int getMaxValueInInterval(int start, int pos) {
+            int maxValue = 0;
+            for (int i = start+1; i < pos; i++) {
+                if (((Double) get(i)).intValue() > maxValue) {
+                    maxValue = ((Double) get(i)).intValue();
+                }
+            }
+            return maxValue;
+        }
+
     @Override
     public int size() {
         return super.size() - 1;
