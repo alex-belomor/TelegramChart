@@ -55,7 +55,7 @@ public class GraphView extends FrameLayout {
     }
 
     public void setData(ArrayList<ModelChart> chartList, int maxFollowers) {
-        mGraph.setChartData(chartList, start, end);
+        mGraph.setChartData(chartList.get(0), start, end);
         mGraphSeek.setChartData(chartList.get(0));
     }
 }
