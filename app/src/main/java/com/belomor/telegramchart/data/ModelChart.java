@@ -104,6 +104,19 @@ public class ModelChart {
         public void setY3(String y3) {
             this.y3 = y3;
         }
+
+        public String getColorByPos(int pos) {
+            switch (pos) {
+                case 0:
+                    return getY0();
+                case 1:
+                    return getY1();
+                case 2:
+                    return getY2();
+                default:
+                    return getY3();
+            }
+        }
     }
 
     public class ChartName {

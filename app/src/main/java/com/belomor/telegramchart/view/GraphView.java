@@ -11,14 +11,18 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.FrameLayout;
 
+import com.belomor.telegramchart.GraphViewListener;
 import com.belomor.telegramchart.R;
 import com.belomor.telegramchart.SeekListener;
+import com.belomor.telegramchart.adapter.DataAdapter;
 import com.belomor.telegramchart.data.ModelChart;
 
 import java.util.ArrayList;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
@@ -29,6 +33,9 @@ public class GraphView extends FrameLayout {
 
     @BindView(R.id.graph_seek)
     GraphSeek mGraphSeek;
+
+    @BindView(R.id.data_list)
+    RecyclerView mDataList;
 
     int start, end;
 
@@ -54,8 +61,14 @@ public class GraphView extends FrameLayout {
         });
     }
 
-    public void setData(ArrayList<ModelChart> chartList, int maxFollowers) {
-        mGraph.setChartData(chartList.get(0), start, end);
-        mGraphSeek.setChartData(chartList.get(0));
+    public void setData(ModelChart chartList, int maxFollowers) {
+        mGraph.setChartData(chartList, start, end);
+        mGraphSeek.setChartData(chartList);
+
+        mDataList.setLayoutManager(new LinearLayoutManager(getContext()));
+        DataAdapter dataAdapter = new DataAdapter();
+        dataAdapter.setGraphViewListener(() -> mGraph.rangeChart(start, end));
+        dataAdapter.setColumnsData(chartList);
+        mDataList.setAdapter(dataAdapter);
     }
 }
