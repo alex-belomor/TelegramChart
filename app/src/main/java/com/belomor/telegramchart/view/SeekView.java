@@ -22,9 +22,12 @@ public class SeekView extends View {
 
     private boolean dataDrawed = false;
 
+    private boolean animation = false;
+
     private int height, width;
 
     private int redrawPos = -1;
+    private boolean redrawShow = false;
 
     private float changeHeightMultiplier = 0f;
 
@@ -74,8 +77,10 @@ public class SeekView extends View {
         }
     }
 
-    public void redrawGraphs(int pos) {
+    public void redrawGraphs(int pos, boolean show) {
+        animation = true;
         redrawPos = pos;
+        redrawShow = show;
         requestLayout();
     }
 
@@ -83,7 +88,7 @@ public class SeekView extends View {
         changeHeightMultiplier += 0.05f;
         int maxValue = 0;
         float difference = 0f;
-        for (int i = 1; i<modelChart.getColumns().size(); i++) {
+        for (int i = 1; i < modelChart.getColumns().size(); i++) {
             if (modelChart.getColumns().get(i).show) {
                 int localMaxValue = modelChart.getColumns().get(i).getMaxValue();
                 if (localMaxValue > maxValue) {
@@ -97,6 +102,7 @@ public class SeekView extends View {
             changeHeightMultiplier = 0f;
             heightPerUser += difference;
             redrawPos = -1;
+            animation = false;
         }
 
         return returnedValue;
@@ -112,7 +118,7 @@ public class SeekView extends View {
         paint.setAntiAlias(true);
 
         for (int i = 1; i < modelChart.getColumns().size(); i++) {
-            if (modelChart.getColumns().get(i).show) {
+            if (modelChart.getColumns().get(i).show && redrawPos != i) {
                 float latestX = 0;
                 String color = modelChart.getColor().getColorByPos(i - 1);
                 paint.setColor(Color.parseColor(color));
@@ -120,13 +126,10 @@ public class SeekView extends View {
 
                 paint.setAlpha(255);
 
-                if (i == redrawPos && changeHeightMultiplier > 0 && changeHeightMultiplier <= 1f)
-                    paint.setAlpha((int) (255 * changeHeightMultiplier));
-
                 Path p = new Path();
                 p.moveTo(0f, modelChart.getColumnInt(i, 0) * newHeightPerUser);
 
-                for (int j = 0 + 1; j < (modelChart.getColumns().get(0).size() - 2); j++) {
+                for (int j = 1; j < (modelChart.getColumns().get(0).size() - 2); j++) {
                     p.lineTo(latestX + widthPerSize, modelChart.getColumnInt(i, j) * newHeightPerUser);
                     latestX = latestX + widthPerSize;
                 }
@@ -135,7 +138,28 @@ public class SeekView extends View {
             }
         }
 
-        postInvalidateDelayed(1);
+
+        if (redrawPos != -1) {
+            float latestX = 0;
+            String color = modelChart.getColor().getColorByPos(redrawPos - 1);
+            paint.setColor(Color.parseColor(color));
+            paint.setStyle(Paint.Style.STROKE);
+
+            paint.setAlpha((int) (redrawShow ? 255 * changeHeightMultiplier : 255 - 255 * changeHeightMultiplier));
+
+            Path p = new Path();
+            p.moveTo(0f, modelChart.getColumnInt(redrawPos, 0) * newHeightPerUser);
+
+            for (int j = 1; j < (modelChart.getColumns().get(0).size() - 2); j++) {
+                p.lineTo(latestX + widthPerSize, modelChart.getColumnInt(redrawPos, j) * newHeightPerUser);
+                latestX = latestX + widthPerSize;
+            }
+
+            canvas.drawPath(p, paint);
+        }
+
+        if (animation)
+            postInvalidateDelayed(1);
     }
 
     private void drawData(Canvas canvas, ModelChart modelChart) {

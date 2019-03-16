@@ -87,8 +87,8 @@ public class GraphSeek extends FrameLayout {
         mSeekView.setChartData(data);
     }
 
-    public void redrawGraphs(int pos) {
-        mSeekView.redrawGraphs(pos);
+    public void redrawGraphs(int pos, boolean show) {
+        mSeekView.redrawGraphs(pos, show);
     }
 
     @OnTouch(R.id.to)

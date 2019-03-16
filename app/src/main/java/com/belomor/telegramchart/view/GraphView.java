@@ -71,8 +71,8 @@ public class GraphView extends FrameLayout {
         mDataList.setLayoutManager(linearLayoutManager);
         DataAdapter dataAdapter = new DataAdapter();
         dataAdapter.setGraphViewListener((pos, checked) -> {
-            mGraph.redrawGraphs(pos);
-            mGraphSeek.redrawGraphs(pos);
+            mGraph.redrawGraphs(pos, checked);
+            mGraphSeek.redrawGraphs(pos, checked);
         });
         dataAdapter.setColumnsData(chartList);
         mDataList.setAdapter(dataAdapter);

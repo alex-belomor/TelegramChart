@@ -27,6 +27,8 @@ public class GraphView2 extends View {
 
     private boolean animation = false;
 
+    private boolean redrawShow = false;
+
     private int height, width;
 
     private int redrawPos = -1;
@@ -77,10 +79,11 @@ public class GraphView2 extends View {
         requestLayout();
     }
 
-    public void redrawGraphs(int pos) {
+    public void redrawGraphs(int pos, boolean show) {
         redrawGraph = true;
         redrawPos = pos;
         animation = true;
+        redrawShow = show;
         requestLayout();
     }
 
@@ -182,7 +185,7 @@ public class GraphView2 extends View {
         paint.setAntiAlias(true);
 
         for (int i = 1; i < modelChart.getColumns().size(); i++) {
-            if (modelChart.getColumns().get(i).show) {
+            if (modelChart.getColumns().get(i).show && redrawPos != i) {
                 float latestX = 0;
                 String color = modelChart.getColor().getColorByPos(i - 1);
                 paint.setColor(Color.parseColor(color));
@@ -203,6 +206,25 @@ public class GraphView2 extends View {
 
                 canvas.drawPath(p, paint);
             }
+        }
+
+        if (redrawPos != -1) {
+            float latestX = 0;
+            String color = modelChart.getColor().getColorByPos(redrawPos - 1);
+            paint.setColor(Color.parseColor(color));
+            paint.setStyle(Paint.Style.STROKE);
+
+            paint.setAlpha((int) (redrawShow ? 255 * changeHeightMultiplier : 255 - 255 * changeHeightMultiplier));
+
+            Path p = new Path();
+            p.moveTo(0f, modelChart.getColumnInt(redrawPos, 0) * newHeightPerUser);
+
+            for (int j = start + 1; j < end; j++) {
+                p.lineTo(latestX + widthPerSize, modelChart.getColumnInt(redrawPos, j) * newHeightPerUser);
+                latestX = latestX + widthPerSize;
+            }
+
+            canvas.drawPath(p, paint);
         }
 
         postInvalidateDelayed(1);
