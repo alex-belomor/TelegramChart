@@ -109,7 +109,7 @@ public class SeekView extends View {
     }
 
     private void animateChangeDrawData(Canvas canvas, ModelChart modelChart) {
-        widthPerSize = (float) width / (float) (modelChart.getColumns().get(0).size() - 2);
+        widthPerSize = (float) width / (float) (modelChart.getColumns().get(0).size() - 1);
 
         canvas.drawColor(Color.WHITE);
 
@@ -129,7 +129,7 @@ public class SeekView extends View {
                 Path p = new Path();
                 p.moveTo(0f, modelChart.getColumnInt(i, 0) * newHeightPerUser);
 
-                for (int j = 1; j < (modelChart.getColumns().get(0).size() - 2); j++) {
+                for (int j = 1; j < (modelChart.getColumns().get(0).size() - 1); j++) {
                     p.lineTo(latestX + widthPerSize, modelChart.getColumnInt(i, j) * newHeightPerUser);
                     latestX = latestX + widthPerSize;
                 }
@@ -150,7 +150,7 @@ public class SeekView extends View {
             Path p = new Path();
             p.moveTo(0f, modelChart.getColumnInt(redrawPos, 0) * newHeightPerUser);
 
-            for (int j = 1; j < (modelChart.getColumns().get(0).size() - 2); j++) {
+            for (int j = 1; j < (modelChart.getColumns().get(0).size() - 1); j++) {
                 p.lineTo(latestX + widthPerSize, modelChart.getColumnInt(redrawPos, j) * newHeightPerUser);
                 latestX = latestX + widthPerSize;
             }
@@ -174,7 +174,7 @@ public class SeekView extends View {
                 }
             }
         }
-        widthPerSize = (float) width / (float) (modelChart.getColumns().get(0).size() - 2);
+        widthPerSize = (float) width / (float) (modelChart.getColumns().get(0).size() - 1);
 
         canvas.drawColor(Color.WHITE);
 
