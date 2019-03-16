@@ -9,6 +9,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.FrameLayout;
 
+import com.belomor.telegramchart.GraphViewListener;
 import com.belomor.telegramchart.ItemDivider;
 import com.belomor.telegramchart.R;
 import com.belomor.telegramchart.SeekListener;
@@ -69,7 +70,10 @@ public class GraphView extends FrameLayout {
 
         mDataList.setLayoutManager(linearLayoutManager);
         DataAdapter dataAdapter = new DataAdapter();
-        dataAdapter.setGraphViewListener(() -> mGraph.rangeChart(start, end));
+        dataAdapter.setGraphViewListener((pos, checked) -> {
+            mGraph.redrawGraphs(pos);
+            mGraphSeek.redrawGraphs(pos);
+        });
         dataAdapter.setColumnsData(chartList);
         mDataList.setAdapter(dataAdapter);
     }

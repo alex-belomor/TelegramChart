@@ -24,6 +24,7 @@
         android:layout_width="0dp"
         android:layout_height="@dimen/chart_height"
         android:layout_marginLeft="18dp"
+        android:layerType="hardware"
         android:layout_marginRight="18dp"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"

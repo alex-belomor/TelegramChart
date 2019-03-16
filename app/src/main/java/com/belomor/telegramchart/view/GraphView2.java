@@ -29,6 +29,9 @@ public class GraphView2 extends View {
 
     private int height, width;
 
+    private int redrawPos = -1;
+    private boolean redrawGraph = false;
+
     private int start, end, count;
 
 
@@ -74,6 +77,13 @@ public class GraphView2 extends View {
         requestLayout();
     }
 
+    public void redrawGraphs(int pos) {
+        redrawGraph = true;
+        redrawPos = pos;
+        animation = true;
+        requestLayout();
+    }
+
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
@@ -105,6 +115,8 @@ public class GraphView2 extends View {
             animation = false;
             changeHeightMultiplier = 0f;
             heightPerUser += difference;
+            redrawGraph = false;
+            redrawPos = -1;
         }
 
         return returnedValue;
@@ -125,8 +137,8 @@ public class GraphView2 extends View {
         }
 
         if (newHeightPerUser != heightPerUser && heightPerUser > 0f) {
-            drawDataAnimate(canvas, modelChart);
             animation = true;
+            drawDataAnimate(canvas, modelChart);
             return;
         }
 
@@ -143,6 +155,7 @@ public class GraphView2 extends View {
                 String color = modelChart.getColor().getColorByPos(i - 1);
                 paint.setColor(Color.parseColor(color));
                 paint.setStyle(Paint.Style.STROKE);
+                paint.setAlpha(255);
 
                 Path p = new Path();
                 p.moveTo(0f, modelChart.getColumnInt(i, start) * heightPerUser);
@@ -174,6 +187,11 @@ public class GraphView2 extends View {
                 String color = modelChart.getColor().getColorByPos(i - 1);
                 paint.setColor(Color.parseColor(color));
                 paint.setStyle(Paint.Style.STROKE);
+
+                paint.setAlpha(255);
+
+                if (i == redrawPos && redrawGraph && changeHeightMultiplier > 0 && changeHeightMultiplier <= 1f)
+                    paint.setAlpha((int) (255 * changeHeightMultiplier));
 
                 Path p = new Path();
                 p.moveTo(0f, modelChart.getColumnInt(i, start) * newHeightPerUser);

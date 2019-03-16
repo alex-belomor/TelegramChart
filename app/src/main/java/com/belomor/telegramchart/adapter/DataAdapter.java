@@ -87,7 +87,7 @@ public class DataAdapter extends RecyclerView.Adapter<DataAdapter.DataViewHolder
         @OnCheckedChanged(R.id.checkbox)
         void onChecked(boolean checked) {
             modelChart.getColumns().get(pos + 1).show = checked;
-            graphViewListener.onDataChanged();
+            graphViewListener.onDataChanged(pos + 1, checked);
         }
     }
 }
