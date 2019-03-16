@@ -68,7 +68,7 @@ public class GraphView2 extends View {
 
     public void rangeChart(int start, int end) {
         this.start = start;
-        this.end = end;
+        this.end = end == 0 ? data.getColumnSize(0) : end;
         this.count = end - start;
 
         requestLayout();
@@ -89,7 +89,17 @@ public class GraphView2 extends View {
 
     private float calculateAnimatedHeight(ModelChart modelChart) {
         changeHeightMultiplier += 0.05f;
-        float difference = (float) height / (float) modelChart.getColumns().get(1).getMaxValueInInterval(start, end) - heightPerUser;
+        int maxValue = 0;
+        float difference = 0f;
+        for (int i = 1; i<modelChart.getColumns().size(); i++) {
+            if (modelChart.getColumns().get(i).show) {
+                int localMaxValue = modelChart.getColumns().get(i).getMaxValueInInterval(start, end);
+                if (localMaxValue > maxValue) {
+                    maxValue = localMaxValue;
+                    difference = (float) height / (float) maxValue - heightPerUser;
+                }
+            }
+        }
         float returnedValue = heightPerUser + difference * changeHeightMultiplier;
         if (changeHeightMultiplier >= 1f) {
             animation = false;
@@ -101,7 +111,18 @@ public class GraphView2 extends View {
     }
 
     private void drawData(Canvas canvas, ModelChart modelChart) {
-        float newHeightPerUser = (float) height / (float) modelChart.getColumns().get(1).getMaxValueInInterval(start, end);
+        float newHeightPerUser = 0f;
+        int maxValue = 0;
+
+        for (int i = 1; i < modelChart.getColumns().size(); i++) {
+            if (modelChart.getColumns().get(i).show) {
+                int localMaxValue = modelChart.getColumns().get(i).getMaxValueInInterval(start, end);
+                if (localMaxValue > maxValue) {
+                    maxValue = localMaxValue;
+                    newHeightPerUser = (float) height / (float) localMaxValue;
+                }
+            }
+        }
 
         if (newHeightPerUser != heightPerUser && heightPerUser > 0f) {
             drawDataAnimate(canvas, modelChart);
@@ -109,34 +130,37 @@ public class GraphView2 extends View {
             return;
         }
 
-        heightPerUser = (float) height / (float) modelChart.getColumns().get(1).getMaxValueInInterval(start, end);
+        heightPerUser = newHeightPerUser;
         widthPerSize = (float) width / (float) count;
-        float latestX = 0;
 
         canvas.drawColor(Color.WHITE);
 
         paint.setAntiAlias(true);
 
-        String color = modelChart.getColor().getY1();
-        paint.setColor(Color.parseColor(color));
-        paint.setStyle(Paint.Style.STROKE);
+        for (int i = 1; i < modelChart.getColumns().size(); i++) {
+            if (modelChart.getColumns().get(i).show) {
+                float latestX = 0;
+                String color = modelChart.getColor().getColorByPos(i - 1);
+                paint.setColor(Color.parseColor(color));
+                paint.setStyle(Paint.Style.STROKE);
 
-        Path p = new Path();
-        p.moveTo(0f, modelChart.getColumnInt(1, start) * heightPerUser);
+                Path p = new Path();
+                p.moveTo(0f, modelChart.getColumnInt(i, start) * heightPerUser);
 
-        for (int i = start + 1; i < end; i++) {
-            p.lineTo(latestX + widthPerSize, modelChart.getColumnInt(1, i) * heightPerUser);
-            latestX = latestX + widthPerSize;
+                for (int j = start + 1; j < end; j++) {
+                    p.lineTo(latestX + widthPerSize, modelChart.getColumnInt(i, j) * heightPerUser);
+                    latestX = latestX + widthPerSize;
+                }
+
+                canvas.drawPath(p, paint);
+            }
         }
-
-        canvas.drawPath(p, paint);
     }
 
     private void drawDataAnimate(Canvas canvas, ModelChart modelChart) {
         if (!animation)
             return;
         widthPerSize = (float) width / (float) count;
-        float latestX = 0;
 
         canvas.drawColor(Color.WHITE);
 
@@ -144,19 +168,24 @@ public class GraphView2 extends View {
 
         paint.setAntiAlias(true);
 
-        String color = modelChart.getColor().getY1();
-        paint.setColor(Color.parseColor(color));
-        paint.setStyle(Paint.Style.STROKE);
+        for (int i = 1; i < modelChart.getColumns().size(); i++) {
+            if (modelChart.getColumns().get(i).show) {
+                float latestX = 0;
+                String color = modelChart.getColor().getColorByPos(i - 1);
+                paint.setColor(Color.parseColor(color));
+                paint.setStyle(Paint.Style.STROKE);
 
-        Path p = new Path();
-        p.moveTo(0f, modelChart.getColumnInt(1, start) * newHeightPerUser);
+                Path p = new Path();
+                p.moveTo(0f, modelChart.getColumnInt(i, start) * newHeightPerUser);
 
-        for (int i = start + 1; i < end; i++) {
-            p.lineTo(latestX + widthPerSize, modelChart.getColumnInt(1, i) * newHeightPerUser);
-            latestX = latestX + widthPerSize;
+                for (int j = start + 1; j < end; j++) {
+                    p.lineTo(latestX + widthPerSize, modelChart.getColumnInt(i, j) * newHeightPerUser);
+                    latestX = latestX + widthPerSize;
+                }
+
+                canvas.drawPath(p, paint);
+            }
         }
-
-        canvas.drawPath(p, paint);
 
         postInvalidateDelayed(1);
     }

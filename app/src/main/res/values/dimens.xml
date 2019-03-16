@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <dimen name="chart_height">300dp</dimen>
+    <dimen name="chart_height">260dp</dimen>
     <dimen name="text_medium">18sp</dimen>
     <dimen name="graph_seek_heigh">50dp</dimen>
 </resources>

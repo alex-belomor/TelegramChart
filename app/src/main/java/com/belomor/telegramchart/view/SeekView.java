@@ -5,13 +5,10 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
-import android.graphics.Rect;
 import android.util.AttributeSet;
 import android.view.View;
 
 import com.belomor.telegramchart.data.ModelChart;
-
-import java.util.ArrayList;
 
 import androidx.annotation.Nullable;
 
@@ -71,27 +68,39 @@ public class SeekView extends View {
 
 
     private void drawData(Canvas canvas, ModelChart modelChart) {
-        heightPerUser = (float) height / (float) modelChart.getColumns().get(1).getMaxValue();
-        widthPerSize = (float) width / (float) (modelChart.getColumns().get(1).size() - 2);
-        float latestX = 0;
+        heightPerUser = 0f;
+        int theMostMaxValue = 0;
+        for (int i = 1; i < modelChart.getColumns().size(); i++) {
+            if (modelChart.getColumns().get(i).show) {
+                int localTheMostMaxValue = modelChart.getColumns().get(i).getMaxValue();
+                if (localTheMostMaxValue > theMostMaxValue) {
+                    theMostMaxValue = localTheMostMaxValue;
+                    heightPerUser = (float) height / (float) theMostMaxValue;
+                }
+            }
+        }
+        widthPerSize = (float) width / (float) (modelChart.getColumns().get(0).size() - 2);
 
         canvas.drawColor(Color.WHITE);
 
         paint.setAntiAlias(true);
 
-        String color = modelChart.getColor().getY1();
-        paint.setColor(Color.parseColor(color));
-        paint.setStyle(Paint.Style.STROKE);
+        for (int i = 1; i < modelChart.getColumns().size(); i++) {
+            float latestX = 0;
+            String color = modelChart.getColor().getColorByPos(i - 1);
+            paint.setColor(Color.parseColor(color));
+            paint.setStyle(Paint.Style.STROKE);
 
-        Path p = new Path();
-        p.moveTo(0f, modelChart.getColumnInt(1, 0));
+            Path p = new Path();
+            p.moveTo(0f, modelChart.getColumnInt(i, 0));
 
-        for (int i = 1; i < modelChart.getColumnSize(1); i++) {
-            p.lineTo(latestX + (widthPerSize), modelChart.getColumnInt(1, i) * heightPerUser);
-            latestX = latestX + (widthPerSize);
+            for (int j = 1; j < modelChart.getColumnSize(i); j++) {
+                p.lineTo(latestX + (widthPerSize), modelChart.getColumnInt(i, j) * heightPerUser);
+                latestX = latestX + (widthPerSize);
+            }
+
+            canvas.drawPath(p, paint);
         }
-
-        canvas.drawPath(p, paint);
 
 //            postInvalidateDelayed(200);
     }
