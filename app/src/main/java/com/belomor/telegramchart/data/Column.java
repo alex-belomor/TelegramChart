@@ -24,9 +24,9 @@ public class Column extends ArrayList {
         return maxValue;
     }
 
-    public int getMaxValueInInterval(int start, int pos) {
+    public int getMaxValueInInterval(int start, int end) {
         int maxValue = 0;
-        for (int i = start + 1; i < pos; i++) {
+        for (int i = start + 1; i < end; i++) {
             if (((Double) get(i)).intValue() > maxValue) {
                 maxValue = ((Double) get(i)).intValue();
             }

@@ -7,7 +7,12 @@ import android.util.TypedValue;
 public class BelomorUtil {
 
     public static int getDpInPx(float value, Context context) {
-        DisplayMetrics displayMetrics = context.getResources().getDisplayMetrics();
-        return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, value, displayMetrics);
+        return (int) (TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, value,
+                context.getResources().getDisplayMetrics()));
+    }
+
+    public static int getSpInPx(float value, Context context) {
+        return (int) (TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, value,
+                context.getResources().getDisplayMetrics()));
     }
 }

@@ -24,11 +24,67 @@
         android:layout_width="0dp"
         android:layout_height="@dimen/chart_height"
         android:layout_marginLeft="18dp"
-        android:layerType="hardware"
         android:layout_marginRight="18dp"
+        android:layerType="hardware"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toBottomOf="@id/title" />
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="60dp"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="@id/graph_component"
+        app:layout_constraintLeft_toLeftOf="@id/graph_component"
+        app:layout_constraintTop_toTopOf="@id/graph_component">
+
+        <TextSwitcher
+            android:id="@+id/ts_0"
+            android:layout_width="wrap_content"
+            android:layout_height="0dp"
+            app:layout_constraintHeight_percent="0.166"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextSwitcher
+            android:id="@+id/ts_1"
+            android:layout_width="wrap_content"
+            android:layout_height="0dp"
+            app:layout_constraintHeight_percent="0.166"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/ts_0" />
+
+        <TextSwitcher
+            android:id="@+id/ts_2"
+            android:layout_width="wrap_content"
+            android:layout_height="0dp"
+            app:layout_constraintHeight_percent="0.166"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/ts_1" />
+
+        <TextSwitcher
+            android:id="@+id/ts_3"
+            android:layout_width="wrap_content"
+            android:layout_height="0dp"
+            app:layout_constraintHeight_percent="0.166"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/ts_2" />
+
+        <TextSwitcher
+            android:id="@+id/ts_4"
+            android:layout_width="wrap_content"
+            android:layout_height="0dp"
+            app:layout_constraintHeight_percent="0.166"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/ts_3" />
+
+        <TextSwitcher
+            android:id="@+id/ts_5"
+            android:layout_width="wrap_content"
+            android:layout_height="0dp"
+            app:layout_constraintHeight_percent="0.166"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/ts_4" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
     <com.belomor.telegramchart.view.GraphSeek
         android:id="@+id/graph_seek"
@@ -48,9 +104,9 @@
         android:layout_marginLeft="18dp"
         android:layout_marginTop="8dp"
         android:layout_marginRight="18dp"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintTop_toBottomOf="@id/graph_seek" />
 
 

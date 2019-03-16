@@ -14,6 +14,8 @@
 
     <color name="divider_color">#F7F7F7</color>
 
+    <color name="graph_text_color">#B8C0C5</color>
+
 
     <color name="seek_color">#A6CBD6DF</color>
     <color name="seek_color_off">#BFF5F8F9</color>

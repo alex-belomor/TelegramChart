@@ -8,11 +8,13 @@ import android.graphics.Path;
 import android.util.AttributeSet;
 import android.view.View;
 
+import com.belomor.telegramchart.R;
 import com.belomor.telegramchart.data.ModelChart;
 
 import java.util.ArrayList;
 
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 
 public class GraphView2 extends View {
 
@@ -22,8 +24,11 @@ public class GraphView2 extends View {
 
     private float heightPerUser = 0f;
     private float widthPerSize = 0f;
+    private int maxGlobalValue;
 
     private float changeHeightMultiplier = 0f;
+
+    private int dateOffset = 100;
 
     private boolean animation = false;
 
@@ -56,9 +61,10 @@ public class GraphView2 extends View {
 
     public void setChartData(ModelChart data, int start, int end) {
         if (!animation) {
+            end = end == 0 ? data.getColumnSize(0) : end;
             this.data = data;
             this.start = start;
-            this.end = end == 0 ? data.getColumnSize(0) : end;
+            this.end = end;
             this.count = end - start;
 
             requestLayout();
@@ -72,8 +78,9 @@ public class GraphView2 extends View {
     }
 
     public void rangeChart(int start, int end) {
+        end = end == 0 ? data.getColumnSize(0) : end;
         this.start = start;
-        this.end = end == 0 ? data.getColumnSize(0) : end;
+        this.end = end;
         this.count = end - start;
 
         requestLayout();
@@ -91,7 +98,7 @@ public class GraphView2 extends View {
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
 
-        if (data != null && height > 0 && width > 0) {
+        if (data != null && height > 0 && width > 0 && end > 0) {
             if (!animation) {
                 drawData(canvas, data);
             } else {
@@ -100,7 +107,7 @@ public class GraphView2 extends View {
         }
     }
 
-    private float calculateAnimatedHeight(ModelChart modelChart) {
+    private float calculateAnimatedHeight(Canvas canvas, ModelChart modelChart) {
         changeHeightMultiplier += 0.05f;
         int maxValue = 0;
         float difference = 0f;
@@ -118,6 +125,7 @@ public class GraphView2 extends View {
             animation = false;
             changeHeightMultiplier = 0f;
             heightPerUser += difference;
+            maxGlobalValue = maxValue;
             redrawGraph = false;
             redrawPos = -1;
         }
@@ -145,10 +153,10 @@ public class GraphView2 extends View {
             return;
         }
 
+        maxGlobalValue = maxValue;
         heightPerUser = newHeightPerUser;
         widthPerSize = (float) width / (float) count;
 
-        canvas.drawColor(Color.WHITE);
 
         paint.setAntiAlias(true);
 
@@ -171,6 +179,29 @@ public class GraphView2 extends View {
                 canvas.drawPath(p, paint);
             }
         }
+//
+////        canvas.scale(1f, -1f);
+//        Paint paintText = new Paint(Paint.ANTI_ALIAS_FLAG);
+//        int textSize = 35;
+//        paintText.setTextSize(textSize);
+//        paintText.setColor(ContextCompat.getColor(getContext(), R.color.graph_text_color));
+//        for (int i = 0; i < 6; i++) {
+//            float floatMaxValue = ((float)maxGlobalValue / 5f * (float) i);
+//            String text = String.valueOf(Float.valueOf(floatMaxValue).intValue());
+//            float yInterval = height / 5;
+//            float y = yInterval * i - textSize * i;
+//            canvas.drawText(text, 0, y, paintText);
+//        }
+    }
+
+    public void drawMaxValue(int maxValue) {
+
+    }
+
+    public void drawLines(Canvas canvas, boolean animate, boolean increase) {
+        Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        paint.setColor(ContextCompat.getColor(getContext(), R.color.graph_text_color));
+        paint.setStrokeWidth(1.2f);
     }
 
     private void drawDataAnimate(Canvas canvas, ModelChart modelChart) {
@@ -178,9 +209,7 @@ public class GraphView2 extends View {
             return;
         widthPerSize = (float) width / (float) count;
 
-        canvas.drawColor(Color.WHITE);
-
-        float newHeightPerUser = calculateAnimatedHeight(modelChart);
+        float newHeightPerUser = calculateAnimatedHeight(canvas, modelChart);
 
         paint.setAntiAlias(true);
 
