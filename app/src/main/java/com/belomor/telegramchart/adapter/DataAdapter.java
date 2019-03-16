@@ -75,7 +75,7 @@ public class DataAdapter extends RecyclerView.Adapter<DataAdapter.DataViewHolder
         public void bindPos(int pos) {
             this.pos = pos;
             checkBox.setChecked(modelChart.getColumns().get(pos + 1).show);
-            title.setText(modelChart.getColumnName(pos + 1));
+            title.setText(modelChart.getName().getNameByPos(pos));
 
 
             int color = Color.parseColor(modelChart.getColor().getColorByPos(pos));

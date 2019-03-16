@@ -1,26 +1,23 @@
 package com.belomor.telegramchart.view;
 
 import android.content.Context;
-import android.graphics.Bitmap;
 import android.graphics.Canvas;
-import android.graphics.Paint;
 import android.graphics.Rect;
+import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.FrameLayout;
 
-import com.belomor.telegramchart.GraphViewListener;
+import com.belomor.telegramchart.ItemDivider;
 import com.belomor.telegramchart.R;
 import com.belomor.telegramchart.SeekListener;
 import com.belomor.telegramchart.adapter.DataAdapter;
 import com.belomor.telegramchart.data.ModelChart;
 
-import java.util.ArrayList;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import butterknife.BindView;
@@ -62,10 +59,15 @@ public class GraphView extends FrameLayout {
     }
 
     public void setData(ModelChart chartList, int maxFollowers) {
+        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getContext());
+        ItemDivider dividerItemDecoration = new ItemDivider(getResources().getDrawable(R.drawable.divider, null));
+
+        mDataList.addItemDecoration(dividerItemDecoration);
+
         mGraph.setChartData(chartList, start, end);
         mGraphSeek.setChartData(chartList);
 
-        mDataList.setLayoutManager(new LinearLayoutManager(getContext()));
+        mDataList.setLayoutManager(linearLayoutManager);
         DataAdapter dataAdapter = new DataAdapter();
         dataAdapter.setGraphViewListener(() -> mGraph.rangeChart(start, end));
         dataAdapter.setColumnsData(chartList);
