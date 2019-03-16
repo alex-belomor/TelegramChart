@@ -68,7 +68,7 @@ public class MainActivity extends AppCompatActivity {
             try {
                 jsonObject = new JSONArray(jsonString);
                 chartArray = gson.fromJson(jsonObject.toString(), type);
-                mGraph.setData(chartArray.get(0), 0);
+                mGraph.setData(chartArray.get(4), 0);
                 Log.d("TEST", "TEST");
             } catch (JSONException e) {
                 e.printStackTrace();
