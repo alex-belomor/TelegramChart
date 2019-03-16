@@ -217,7 +217,7 @@ public class GraphView2 extends View {
             paint.setAlpha((int) (redrawShow ? 255 * changeHeightMultiplier : 255 - 255 * changeHeightMultiplier));
 
             Path p = new Path();
-            p.moveTo(0f, modelChart.getColumnInt(redrawPos, 0) * newHeightPerUser);
+            p.moveTo(0f, modelChart.getColumnInt(redrawPos, start) * newHeightPerUser);
 
             for (int j = start + 1; j < end; j++) {
                 p.lineTo(latestX + widthPerSize, modelChart.getColumnInt(redrawPos, j) * newHeightPerUser);
