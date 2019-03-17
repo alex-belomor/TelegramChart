@@ -5,8 +5,6 @@ import android.util.AttributeSet;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.animation.Animation;
-import android.view.animation.AnimationUtils;
 import android.widget.FrameLayout;
 import android.widget.TextSwitcher;
 import android.widget.TextView;
@@ -62,24 +60,24 @@ public class GraphView extends FrameLayout implements TextSwitcher.ViewFactory {
 
         mGraphSeek.setOnSeekListener(new SeekListener() {
             @Override
-            public void onLeftChange(int pos, float xOffset) {
+            public void onLeftChange(int pos, float xOffset, float zoom, float widthPerItem) {
                 start = pos;
-                mGraph.rangeChart(start, end);
+                mGraph.rangeChart(start, end, widthPerItem, xOffset);
                 calculateMaxValue();
             }
 
             @Override
-            public void onRightChange(int pos, float xOffset) {
+            public void onRightChange(int pos, float xOffset, float zoom, float widthPerItem) {
                 end = pos - 1;
-                mGraph.rangeChart(start, end);
+                mGraph.rangeChart(start, end, widthPerItem, xOffset);
                 calculateMaxValue();
             }
 
             @Override
-            public void onSeek(int pos, int pos2, float startOffset, float endOffset, float zoom, float widthPerItem) {
-                GraphView.this.start = pos;
-                GraphView.this.end = pos2 - 1;
-                mGraph.rangeChart(start, end);
+            public void onSeek(int start, int end, float startOffset, float endOffset, float zoom, float widthPerItem) {
+                GraphView.this.start = start;
+                GraphView.this.end = end - 1;
+                mGraph.rangeChart(start, end, widthPerItem, startOffset);
             }
 
             @Override

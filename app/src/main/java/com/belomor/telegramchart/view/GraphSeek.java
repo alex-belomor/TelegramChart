@@ -66,7 +66,7 @@ public class GraphSeek extends FrameLayout {
         percent = (float) width / 100;
 
         if (data != null)
-            widthPerItem = width / (float) data.getColumns().get(1).size();
+            widthPerItem = (float) width / (float) getItemsCount();
     }
 
     public void setOnSeekListener(SeekListener seekListener) {
@@ -75,7 +75,9 @@ public class GraphSeek extends FrameLayout {
 
     public void setChartData(ModelChart data) {
         this.data = data;
-        widthPerItem = width / (float) data.getColumns().get(1).size();
+        widthPerItem = width / (float) getItemsCount();
+
+        percent = (float) width / 100;
 
         mSeekView.setChartData(data);
     }
@@ -111,8 +113,11 @@ public class GraphSeek extends FrameLayout {
                 break;
         }
 
+
+        zoom = getZoom();
+
         int change = (int) ((width - finalMarginTo) / widthPerItem);
-        seekListener.onRightChange(change, 0f);
+        seekListener.onRightChange(change, -getOffsetX(), zoom, getNewWidthPerItem());
 
         invalidate();
         return false;
@@ -145,8 +150,11 @@ public class GraphSeek extends FrameLayout {
                 break;
         }
 
+
+        zoom = getZoom();
+
         int change = (int) (finalMarginFrom / widthPerItem);
-        seekListener.onLeftChange(change, 0f);
+        seekListener.onLeftChange(change, -getOffsetX(), zoom, getNewWidthPerItem());
 
         invalidate();
         return false;
@@ -200,11 +208,32 @@ public class GraphSeek extends FrameLayout {
         int changeFrom = (int) (finalMarginFrom / widthPerItem);
         int changeTo = (int) ((width - finalMarginTo) / widthPerItem);
 
-        zoom = 1f + (((float) finalMarginFrom + (float) finalMarginTo) / percent) / 100;
+        zoom = getZoom();
 
-        seekListener.onSeek(changeFrom, changeTo, finalMarginFrom * zoom, finalMarginTo * zoom, zoom, zoom * widthPerItem);
+        seekListener.onSeek(changeFrom, changeTo, -getOffsetX(), finalMarginTo * zoom, zoom, getNewWidthPerItem());
 
         invalidate();
         return false;
+    }
+
+    private float getZoom() {
+        float marginZoom = (100 - (((float) finalMarginFrom + (float) finalMarginTo) / percent)) / 100;
+        return marginZoom;
+    }
+
+    private float getNewWidthPerItem() {
+        float zoom = getZoom();
+        float visibleItems = (float) getItemsCount() * zoom;
+        float newWidthPerItem = ((float) width / visibleItems);
+        return newWidthPerItem;
+    }
+
+    private float getOffsetX() {
+        float offsetX = (float) finalMarginFrom / widthPerItem * getNewWidthPerItem();
+        return offsetX;
+    }
+
+    private int getItemsCount() {
+        return data.getColumns().get(0).getCountValues() - 1;
     }
 }

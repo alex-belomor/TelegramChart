@@ -53,6 +53,8 @@ public class GraphView2 extends TextureView implements TextureView.SurfaceTextur
 
     private boolean done;
 
+    private float offsetX;
+
     private boolean moveAnimation = false;
 
     private int redrawPos = -1;
@@ -98,83 +100,13 @@ public class GraphView2 extends TextureView implements TextureView.SurfaceTextur
         }
     }
 
-    private ArrayList<Path> buildHeightAnimatedGraphPaths() {
-        ArrayList<Path> paths = new ArrayList<>();
-        widthPerSize = (float) width / (float) count;
-
-
-        float newHeightPerUser = calculateAnimatedHeight(data);
-
-        for (int i = 1; i < data.getColumns().size(); i++) {
-            if (data.getColumns().get(i).show && redrawPos != i) {
-                float latestX = 0;
-                String color = data.getColor().getColorByPos(i - 1);
-                paint.setColor(Color.parseColor(color));
-
-                paint.setAlpha(255);
-
-                if (i == redrawPos && redrawGraph && changeHeightMultiplier > 0 && changeHeightMultiplier <= 1f)
-                    paint.setAlpha((int) (255 * changeHeightMultiplier));
-
-                Path p = new Path();
-                p.moveTo(0f, data.getColumnInt(i, start) * newHeightPerUser);
-
-                for (int j = start + 1; j < end; j++) {
-                    p.lineTo(latestX + widthPerSize, data.getColumnInt(i, j) * newHeightPerUser);
-                    latestX = latestX + widthPerSize;
-                }
-
-                paths.add(p);
-            }
-        }
-
-        if (redrawPos != -1) {
-            float latestX = 0;
-            String color = data.getColor().getColorByPos(redrawPos - 1);
-            paint.setColor(Color.parseColor(color));
-
-            paint.setAlpha((int) (redrawShow ? 255 * changeHeightMultiplier : 255 - 255 * changeHeightMultiplier));
-
-            Path p = new Path();
-            p.moveTo(0f, data.getColumnInt(redrawPos, start) * newHeightPerUser);
-
-            for (int j = start + 1; j < end; j++) {
-                p.lineTo(latestX + widthPerSize, data.getColumnInt(redrawPos, j) * newHeightPerUser);
-                latestX = latestX + widthPerSize;
-            }
-
-            paths.add(p);
-        }
-
-        return paths;
-    }
-
-    private void buildMovesPath(int start, int end) {
-        for (int i = 1; i < data.getColumns().size(); i++) {
-            if (data.getColumns().get(i).show) {
-                float latestX = 0;
-                String color = data.getColor().getColorByPos(i - 1);
-                paint.setColor(Color.parseColor(color));
-                paint.setAlpha(255);
-
-                Path p = new Path();
-                p.moveTo(0f, data.getColumnInt(i, start) * heightPerUser);
-
-                for (int j = start + 1; j < end; j++) {
-                    p.lineTo(latestX + widthPerSize, data.getColumnInt(i, j) * heightPerUser);
-                    latestX = latestX + widthPerSize;
-                }
-
-                movesPathArray.add(p);
-            }
-        }
-    }
-
-    public void rangeChart(int start, int end) {
+    public void rangeChart(int start, int end, float widthPerSize, float offsetX) {
         end = end == 0 ? data.getColumnSize(0) : end;
         this.start = start;
         this.end = end;
         this.count = end - start;
+        this.widthPerSize = widthPerSize;
+        this.offsetX = offsetX;
         smoothMove = true;
         startDraw = true;
         moveAnimation = true;
@@ -244,21 +176,20 @@ public class GraphView2 extends TextureView implements TextureView.SurfaceTextur
 
         maxGlobalValue = maxValue;
         heightPerUser = newHeightPerUser;
-        widthPerSize = (float) width / (float) count;
 
 
 
         for (int i = 1; i < modelChart.getColumns().size(); i++) {
             if (modelChart.getColumns().get(i).show) {
-                float latestX = 0;
+                float latestX = offsetX;
                 String color = modelChart.getColor().getColorByPos(i - 1);
                 paint.setColor(Color.parseColor(color));
                 paint.setAlpha(255);
 
                 Path p = new Path();
-                p.moveTo(0f, modelChart.getColumnInt(i, start) * heightPerUser);
+                p.moveTo(latestX, modelChart.getColumnInt(i, 0) * heightPerUser);
 
-                for (int j = start + 1; j < end; j++) {
+                for (int j = 1; j < modelChart.getColumnSize(0); j++) {
                     p.lineTo(latestX + widthPerSize, modelChart.getColumnInt(i, j) * heightPerUser);
                     latestX = latestX + widthPerSize;
                 }
@@ -295,14 +226,12 @@ public class GraphView2 extends TextureView implements TextureView.SurfaceTextur
     private void drawDataAnimate(Canvas canvas, ModelChart modelChart) {
         if (!animation)
             return;
-        widthPerSize = (float) width / (float) count;
 
         float newHeightPerUser = calculateAnimatedHeight(modelChart);
 
-
         for (int i = 1; i < modelChart.getColumns().size(); i++) {
             if (modelChart.getColumns().get(i).show && redrawPos != i) {
-                float latestX = 0;
+                float latestX = offsetX;
                 String color = modelChart.getColor().getColorByPos(i - 1);
                 paint.setColor(Color.parseColor(color));
 
@@ -312,9 +241,9 @@ public class GraphView2 extends TextureView implements TextureView.SurfaceTextur
                     paint.setAlpha((int) (255 * changeHeightMultiplier));
 
                 Path p = new Path();
-                p.moveTo(0f, modelChart.getColumnInt(i, start) * newHeightPerUser);
+                p.moveTo(latestX, modelChart.getColumnInt(i, 0) * newHeightPerUser);
 
-                for (int j = start + 1; j < end; j++) {
+                for (int j = 1; j < modelChart.getColumnSize(0); j++) {
                     p.lineTo(latestX + widthPerSize, modelChart.getColumnInt(i, j) * newHeightPerUser);
                     latestX = latestX + widthPerSize;
                 }
@@ -324,16 +253,16 @@ public class GraphView2 extends TextureView implements TextureView.SurfaceTextur
         }
 
         if (redrawPos != -1) {
-            float latestX = 0;
+            float latestX = offsetX;
             String color = modelChart.getColor().getColorByPos(redrawPos - 1);
             paint.setColor(Color.parseColor(color));
 
             paint.setAlpha((int) (redrawShow ? 255 * changeHeightMultiplier : 255 - 255 * changeHeightMultiplier));
 
             Path p = new Path();
-            p.moveTo(0f, modelChart.getColumnInt(redrawPos, start) * newHeightPerUser);
+            p.moveTo(latestX, modelChart.getColumnInt(redrawPos, 0) * newHeightPerUser);
 
-            for (int j = start + 1; j < end; j++) {
+            for (int j = 1; j < modelChart.getColumnSize(0); j++) {
                 p.lineTo(latestX + widthPerSize, modelChart.getColumnInt(redrawPos, j) * newHeightPerUser);
                 latestX = latestX + widthPerSize;
             }
@@ -389,7 +318,7 @@ public class GraphView2 extends TextureView implements TextureView.SurfaceTextur
                         Log.w("RENDERNING", end + "ms");
 
                     try {
-                        Thread.sleep(4);
+                        Thread.sleep(1);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }

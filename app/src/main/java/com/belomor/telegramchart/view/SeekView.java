@@ -41,8 +41,6 @@ public class SeekView extends View {
         paint.setStrokeWidth(3f);
 
         setRotationX(180);
-
-//        setScaleX(0.1f);
     }
 
     @Override
@@ -109,7 +107,7 @@ public class SeekView extends View {
     }
 
     private void animateChangeDrawData(Canvas canvas, ModelChart modelChart) {
-        widthPerSize = (float) width / (float) (modelChart.getColumns().get(0).size() - 1);
+        widthPerSize = (float) width / (float) (getItemsCount());
 
         canvas.drawColor(Color.WHITE);
 
@@ -129,7 +127,7 @@ public class SeekView extends View {
                 Path p = new Path();
                 p.moveTo(0f, modelChart.getColumnInt(i, 0) * newHeightPerUser);
 
-                for (int j = 1; j < (modelChart.getColumns().get(0).size() - 1); j++) {
+                for (int j = 1; j < (modelChart.getColumns().get(0).getCountValues()); j++) {
                     p.lineTo(latestX + widthPerSize, modelChart.getColumnInt(i, j) * newHeightPerUser);
                     latestX = latestX + widthPerSize;
                 }
@@ -150,7 +148,7 @@ public class SeekView extends View {
             Path p = new Path();
             p.moveTo(0f, modelChart.getColumnInt(redrawPos, 0) * newHeightPerUser);
 
-            for (int j = 1; j < (modelChart.getColumns().get(0).size() - 1); j++) {
+            for (int j = 1; j < (modelChart.getColumns().get(0).getCountValues()); j++) {
                 p.lineTo(latestX + widthPerSize, modelChart.getColumnInt(redrawPos, j) * newHeightPerUser);
                 latestX = latestX + widthPerSize;
             }
@@ -174,7 +172,7 @@ public class SeekView extends View {
                 }
             }
         }
-        widthPerSize = (float) width / (float) (modelChart.getColumns().get(0).size() - 1);
+        widthPerSize = (float) width / (float) getItemsCount();
 
         canvas.drawColor(Color.WHITE);
 
@@ -200,5 +198,7 @@ public class SeekView extends View {
         dataDrawed = true;
     }
 
-
+    private int getItemsCount() {
+        return data.getColumns().get(0).getCountValues() - 1;
+    }
 }
