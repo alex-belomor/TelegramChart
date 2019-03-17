@@ -1,11 +1,6 @@
 package com.belomor.telegramchart.view;
 
 import android.content.Context;
-import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.Paint;
-import android.graphics.Path;
-import android.graphics.Rect;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -16,8 +11,6 @@ import android.widget.ImageView;
 import com.belomor.telegramchart.R;
 import com.belomor.telegramchart.SeekListener;
 import com.belomor.telegramchart.data.ModelChart;
-
-import java.util.ArrayList;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -38,17 +31,15 @@ public class GraphSeek extends FrameLayout {
     @BindView(R.id.graph_seek_view)
     SeekView mSeekView;
 
-    private int height = 0;
     private int width = 0;
+    private float zoom = 1f;
 
-    private int xDelta;
-    private int yDelta;
     private int xStart;
-    private int margin;
     private int startMarginFrom;
     private int finalMarginFrom;
     private int startMarginTo;
     private int finalMarginTo;
+    private float percent;
 
     private ModelChart data;
 
@@ -69,11 +60,13 @@ public class GraphSeek extends FrameLayout {
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
 
-        height = MeasureSpec.getSize(heightMeasureSpec);
+//        height = MeasureSpec.getSize(heightMeasureSpec);
         width = MeasureSpec.getSize(widthMeasureSpec);
 
+        percent = (float) width / 100;
+
         if (data != null)
-        widthPerItem = width / (float) data.getColumns().get(1).size();
+            widthPerItem = width / (float) data.getColumns().get(1).size();
     }
 
     public void setOnSeekListener(SeekListener seekListener) {
@@ -206,7 +199,10 @@ public class GraphSeek extends FrameLayout {
 
         int changeFrom = (int) (finalMarginFrom / widthPerItem);
         int changeTo = (int) ((width - finalMarginTo) / widthPerItem);
-        seekListener.onSeek(changeFrom, changeTo, 0f, 0f);
+
+        zoom = 1f + (((float) finalMarginFrom + (float) finalMarginTo) / percent) / 100;
+
+        seekListener.onSeek(changeFrom, changeTo, finalMarginFrom * zoom, finalMarginTo * zoom, zoom, zoom * widthPerItem);
 
         invalidate();
         return false;

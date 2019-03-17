@@ -76,10 +76,15 @@ public class GraphView extends FrameLayout implements TextSwitcher.ViewFactory {
             }
 
             @Override
-            public void onSeek(int start, int end, float xOffset, float x2Offset) {
-                GraphView.this.start = start;
-                GraphView.this.end = end - 1;
+            public void onSeek(int pos, int pos2, float startOffset, float endOffset, float zoom, float widthPerItem) {
+                GraphView.this.start = pos;
+                GraphView.this.end = pos2 - 1;
                 mGraph.rangeChart(start, end);
+            }
+
+            @Override
+            public void onZoom(float zoom, float startOffset, float endOffset) {
+
             }
         });
     }
