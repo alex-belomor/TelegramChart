@@ -68,7 +68,7 @@ public class GraphView extends FrameLayout implements TextSwitcher.ViewFactory {
 
             @Override
             public void onRightChange(int pos, float xOffset, float zoom, float widthPerItem) {
-                end = pos - 1;
+                end = pos;
                 mGraph.rangeChart(start, end, widthPerItem, xOffset);
                 calculateMaxValue();
             }
@@ -76,7 +76,7 @@ public class GraphView extends FrameLayout implements TextSwitcher.ViewFactory {
             @Override
             public void onSeek(int start, int end, float startOffset, float endOffset, float zoom, float widthPerItem) {
                 GraphView.this.start = start;
-                GraphView.this.end = end - 1;
+                GraphView.this.end = end;
                 mGraph.rangeChart(start, end, widthPerItem, startOffset);
             }
 
@@ -99,33 +99,7 @@ public class GraphView extends FrameLayout implements TextSwitcher.ViewFactory {
         if (maxValue == localMaxValue)
             return;
 
-//        if (maxValue > localMaxValue) {
-//            for (int i = 1; i < mTextViewSwitcher.size(); i++) {
-//                Animation inAnimation = AnimationUtils.loadAnimation(getContext(),
-//                        R.anim.increase_in);
-//                Animation outAnimation = AnimationUtils.loadAnimation(getContext(),
-//                        R.anim.increase_out);
-//                mTextViewSwitcher.get(i).setInAnimation(inAnimation);
-//                mTextViewSwitcher.get(i).setOutAnimation(outAnimation);
-//            }
-//        } else {
-//            for (int i = 1; i < mTextViewSwitcher.size(); i++) {
-//                Animation inAnimation = AnimationUtils.loadAnimation(getContext(),
-//                        R.anim.decrease_in);
-//                Animation outAnimation = AnimationUtils.loadAnimation(getContext(),
-//                        R.anim.decrease_out);
-//                mTextViewSwitcher.get(i).setInAnimation(inAnimation);
-//                mTextViewSwitcher.get(i).setOutAnimation(outAnimation);
-//            }
-//        }
-
         maxValue = localMaxValue;
-//
-//        mTextViewSwitcher.get(0).setText("0");
-//        for (int i = 1; i < mTextViewSwitcher.size(); i++) {
-//            float value = (float) maxValue / 5f * (float) i;
-//            mTextViewSwitcher.get(i).setText(String.valueOf(Float.valueOf(value).intValue()));
-//        }
     }
 
     public void setData(ModelChart chartList, int maxFollowers) {

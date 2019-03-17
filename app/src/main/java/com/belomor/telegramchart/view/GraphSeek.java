@@ -205,8 +205,8 @@ public class GraphSeek extends FrameLayout {
                 break;
         }
 
-        int changeFrom = (int) (finalMarginFrom / widthPerItem);
-        int changeTo = (int) ((width - finalMarginTo) / widthPerItem);
+        int changeFrom = Math.round((float) finalMarginFrom / widthPerItem);
+        int changeTo = Math.round(((float) width - (float) finalMarginTo) / widthPerItem) + 2;
 
         zoom = getZoom();
 

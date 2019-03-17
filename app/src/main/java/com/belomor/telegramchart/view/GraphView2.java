@@ -177,8 +177,6 @@ public class GraphView2 extends TextureView implements TextureView.SurfaceTextur
         maxGlobalValue = maxValue;
         heightPerUser = newHeightPerUser;
 
-
-
         for (int i = 1; i < modelChart.getColumns().size(); i++) {
             if (modelChart.getColumns().get(i).show) {
                 float latestX = offsetX;
