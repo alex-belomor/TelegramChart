@@ -62,17 +62,24 @@ public class GraphView extends FrameLayout implements TextSwitcher.ViewFactory {
 
         mGraphSeek.setOnSeekListener(new SeekListener() {
             @Override
-            public void onLeftChange(int pos) {
+            public void onLeftChange(int pos, float xOffset) {
                 start = pos;
                 mGraph.rangeChart(start, end);
                 calculateMaxValue();
             }
 
             @Override
-            public void onRightChange(int pos) {
+            public void onRightChange(int pos, float xOffset) {
                 end = pos - 1;
                 mGraph.rangeChart(start, end);
                 calculateMaxValue();
+            }
+
+            @Override
+            public void onSeek(int start, int end, float xOffset, float x2Offset) {
+                GraphView.this.start = start;
+                GraphView.this.end = end - 1;
+                mGraph.rangeChart(start, end);
             }
         });
     }
@@ -110,7 +117,7 @@ public class GraphView extends FrameLayout implements TextSwitcher.ViewFactory {
 //        }
 
         maxValue = localMaxValue;
-
+//
 //        mTextViewSwitcher.get(0).setText("0");
 //        for (int i = 1; i < mTextViewSwitcher.size(); i++) {
 //            float value = (float) maxValue / 5f * (float) i;

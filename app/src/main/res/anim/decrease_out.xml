@@ -4,7 +4,7 @@
         android:fromAlpha="1"
         android:toAlpha="0" />
 
-    <scale
+    <translate
         android:fromYDelta="0"
         android:toYDelta="200" />
 </set>

@@ -5,8 +5,11 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
+import android.graphics.SurfaceTexture;
 import android.util.AttributeSet;
-import android.view.View;
+import android.util.Log;
+import android.view.Surface;
+import android.view.TextureView;
 
 import com.belomor.telegramchart.R;
 import com.belomor.telegramchart.data.ModelChart;
@@ -16,11 +19,15 @@ import java.util.ArrayList;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 
-public class GraphView2 extends View {
+public class GraphView2 extends TextureView implements TextureView.SurfaceTextureListener, Runnable {
 
     private ModelChart data;
 
     private Paint paint;
+
+    private Thread mThread;
+
+    private Surface mSurface;
 
     private float heightPerUser = 0f;
     private float widthPerSize = 0f;
@@ -30,11 +37,23 @@ public class GraphView2 extends View {
 
     private int dateOffset = 100;
 
+    private boolean startDraw = false;
+
     private boolean animation = false;
+
+    private boolean smoothMove = false;
 
     private boolean redrawShow = false;
 
+    ArrayList<Path> movesPathArray = new ArrayList<>();
+
+    private float smoothX = 0;
+
     private int height, width;
+
+    private boolean done;
+
+    private boolean moveAnimation = false;
 
     private int redrawPos = -1;
     private boolean redrawGraph = false;
@@ -47,8 +66,14 @@ public class GraphView2 extends View {
 
         paint = new Paint(Paint.ANTI_ALIAS_FLAG);
         paint.setStrokeWidth(6f);
+        paint.setAntiAlias(true);
+        paint.setStyle(Paint.Style.STROKE);
+
 
         setRotationX(180);
+
+        mThread = new Thread(this, "GraphView2");
+        setSurfaceTextureListener(this);
     }
 
     @Override
@@ -61,20 +86,88 @@ public class GraphView2 extends View {
 
     public void setChartData(ModelChart data, int start, int end) {
         if (!animation) {
+            startDraw = true;
             end = end == 0 ? data.getColumnSize(0) : end;
             this.data = data;
             this.start = start;
             this.end = end;
             this.count = end - start;
+            done = false;
 
-            requestLayout();
+//            requestLayout();
         }
     }
 
     private ArrayList<Path> buildHeightAnimatedGraphPaths() {
         ArrayList<Path> paths = new ArrayList<>();
+        widthPerSize = (float) width / (float) count;
+
+
+        float newHeightPerUser = calculateAnimatedHeight(data);
+
+        for (int i = 1; i < data.getColumns().size(); i++) {
+            if (data.getColumns().get(i).show && redrawPos != i) {
+                float latestX = 0;
+                String color = data.getColor().getColorByPos(i - 1);
+                paint.setColor(Color.parseColor(color));
+
+                paint.setAlpha(255);
+
+                if (i == redrawPos && redrawGraph && changeHeightMultiplier > 0 && changeHeightMultiplier <= 1f)
+                    paint.setAlpha((int) (255 * changeHeightMultiplier));
+
+                Path p = new Path();
+                p.moveTo(0f, data.getColumnInt(i, start) * newHeightPerUser);
+
+                for (int j = start + 1; j < end; j++) {
+                    p.lineTo(latestX + widthPerSize, data.getColumnInt(i, j) * newHeightPerUser);
+                    latestX = latestX + widthPerSize;
+                }
+
+                paths.add(p);
+            }
+        }
+
+        if (redrawPos != -1) {
+            float latestX = 0;
+            String color = data.getColor().getColorByPos(redrawPos - 1);
+            paint.setColor(Color.parseColor(color));
+
+            paint.setAlpha((int) (redrawShow ? 255 * changeHeightMultiplier : 255 - 255 * changeHeightMultiplier));
+
+            Path p = new Path();
+            p.moveTo(0f, data.getColumnInt(redrawPos, start) * newHeightPerUser);
+
+            for (int j = start + 1; j < end; j++) {
+                p.lineTo(latestX + widthPerSize, data.getColumnInt(redrawPos, j) * newHeightPerUser);
+                latestX = latestX + widthPerSize;
+            }
+
+            paths.add(p);
+        }
 
         return paths;
+    }
+
+    private void buildMovesPath(int start, int end) {
+        for (int i = 1; i < data.getColumns().size(); i++) {
+            if (data.getColumns().get(i).show) {
+                float latestX = 0;
+                String color = data.getColor().getColorByPos(i - 1);
+                paint.setColor(Color.parseColor(color));
+                paint.setAlpha(255);
+
+                Path p = new Path();
+                p.moveTo(0f, data.getColumnInt(i, start) * heightPerUser);
+
+                for (int j = start + 1; j < end; j++) {
+                    p.lineTo(latestX + widthPerSize, data.getColumnInt(i, j) * heightPerUser);
+                    latestX = latestX + widthPerSize;
+                }
+
+                movesPathArray.add(p);
+            }
+        }
     }
 
     public void rangeChart(int start, int end) {
@@ -82,8 +175,10 @@ public class GraphView2 extends View {
         this.start = start;
         this.end = end;
         this.count = end - start;
-
-        requestLayout();
+        smoothMove = true;
+        startDraw = true;
+        moveAnimation = true;
+//        requestLayout();
     }
 
     public void redrawGraphs(int pos, boolean show) {
@@ -91,27 +186,19 @@ public class GraphView2 extends View {
         redrawPos = pos;
         animation = true;
         redrawShow = show;
-        requestLayout();
+        done = false;
+        startDraw = true;
+//        requestLayout();
     }
 
-    @Override
-    protected void onDraw(Canvas canvas) {
-        super.onDraw(canvas);
 
-        if (data != null && height > 0 && width > 0 && end > 0) {
-            if (!animation) {
-                drawData(canvas, data);
-            } else {
-                drawDataAnimate(canvas, data);
-            }
-        }
-    }
-
-    private float calculateAnimatedHeight(Canvas canvas, ModelChart modelChart) {
+    private float calculateAnimatedHeight(ModelChart modelChart) {
         changeHeightMultiplier += 0.05f;
+        if (changeHeightMultiplier >= 1f)
+            changeHeightMultiplier = 1f;
         int maxValue = 0;
         float difference = 0f;
-        for (int i = 1; i<modelChart.getColumns().size(); i++) {
+        for (int i = 1; i < modelChart.getColumns().size(); i++) {
             if (modelChart.getColumns().get(i).show) {
                 int localMaxValue = modelChart.getColumns().get(i).getMaxValueInInterval(start, end);
                 if (localMaxValue > maxValue) {
@@ -128,6 +215,8 @@ public class GraphView2 extends View {
             maxGlobalValue = maxValue;
             redrawGraph = false;
             redrawPos = -1;
+            done = true;
+            startDraw = false;
         }
 
         return returnedValue;
@@ -158,14 +247,12 @@ public class GraphView2 extends View {
         widthPerSize = (float) width / (float) count;
 
 
-        paint.setAntiAlias(true);
 
         for (int i = 1; i < modelChart.getColumns().size(); i++) {
             if (modelChart.getColumns().get(i).show) {
                 float latestX = 0;
                 String color = modelChart.getColor().getColorByPos(i - 1);
                 paint.setColor(Color.parseColor(color));
-                paint.setStyle(Paint.Style.STROKE);
                 paint.setAlpha(255);
 
                 Path p = new Path();
@@ -192,6 +279,7 @@ public class GraphView2 extends View {
 //            float y = yInterval * i - textSize * i;
 //            canvas.drawText(text, 0, y, paintText);
 //        }
+        startDraw = false;
     }
 
     public void drawMaxValue(int maxValue) {
@@ -209,16 +297,14 @@ public class GraphView2 extends View {
             return;
         widthPerSize = (float) width / (float) count;
 
-        float newHeightPerUser = calculateAnimatedHeight(canvas, modelChart);
+        float newHeightPerUser = calculateAnimatedHeight(modelChart);
 
-        paint.setAntiAlias(true);
 
         for (int i = 1; i < modelChart.getColumns().size(); i++) {
             if (modelChart.getColumns().get(i).show && redrawPos != i) {
                 float latestX = 0;
                 String color = modelChart.getColor().getColorByPos(i - 1);
                 paint.setColor(Color.parseColor(color));
-                paint.setStyle(Paint.Style.STROKE);
 
                 paint.setAlpha(255);
 
@@ -241,7 +327,6 @@ public class GraphView2 extends View {
             float latestX = 0;
             String color = modelChart.getColor().getColorByPos(redrawPos - 1);
             paint.setColor(Color.parseColor(color));
-            paint.setStyle(Paint.Style.STROKE);
 
             paint.setAlpha((int) (redrawShow ? 255 * changeHeightMultiplier : 255 - 255 * changeHeightMultiplier));
 
@@ -255,7 +340,63 @@ public class GraphView2 extends View {
 
             canvas.drawPath(p, paint);
         }
+    }
 
-        postInvalidateDelayed(1);
+    @Override
+    public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
+        mSurface = new Surface(surface);
+        mThread.start();
+    }
+
+    @Override
+    public void onSurfaceTextureSizeChanged(SurfaceTexture surface, int width, int height) {
+
+    }
+
+    @Override
+    public boolean onSurfaceTextureDestroyed(SurfaceTexture surface) {
+        return false;
+    }
+
+    @Override
+    public void onSurfaceTextureUpdated(SurfaceTexture surface) {
+
+    }
+
+    @Override
+    public void run() {
+
+        while (true) {
+            try {
+                if (startDraw) {
+                    long start = System.currentTimeMillis();
+                    Canvas canvas = mSurface.lockHardwareCanvas();
+                    canvas.drawColor(Color.WHITE);
+//                    synchronized (mSurface) {
+                        if (data != null && height > 0 && width > 0 && end > 0) {
+                            if (!animation) {
+                                drawData(canvas, data);
+                            } else {
+                                drawDataAnimate(canvas, data);
+                            }
+                        }
+//                    }
+
+                    mSurface.unlockCanvasAndPost(canvas);
+
+                    long end = System.currentTimeMillis() - start;
+                    if (end > 15)
+                        Log.w("RENDERNING", end + "ms");
+
+                    try {
+                        Thread.sleep(4);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            } catch (Exception e) {
+                Log.e("GraphView2", e.toString());
+            }
+        }
     }
 }
