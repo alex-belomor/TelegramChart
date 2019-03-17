@@ -53,6 +53,8 @@ public class GraphView2 extends TextureView implements TextureView.SurfaceTextur
 
     private boolean done;
 
+    private boolean block;
+
     private float offsetX;
 
     private boolean moveAnimation = false;
@@ -68,6 +70,8 @@ public class GraphView2 extends TextureView implements TextureView.SurfaceTextur
 
         paint = new Paint(Paint.ANTI_ALIAS_FLAG);
         paint.setStrokeWidth(6f);
+        paint.setStrokeJoin(Paint.Join.ROUND);
+        paint.setStrokeCap(Paint.Cap.ROUND);
         paint.setAntiAlias(true);
         paint.setStyle(Paint.Style.STROKE);
 
@@ -225,6 +229,8 @@ public class GraphView2 extends TextureView implements TextureView.SurfaceTextur
         if (!animation)
             return;
 
+        block = true;
+
         float newHeightPerUser = calculateAnimatedHeight(modelChart);
 
         for (int i = 1; i < modelChart.getColumns().size(); i++) {
@@ -267,6 +273,8 @@ public class GraphView2 extends TextureView implements TextureView.SurfaceTextur
 
             canvas.drawPath(p, paint);
         }
+
+        block = false;
     }
 
     @Override
@@ -296,25 +304,26 @@ public class GraphView2 extends TextureView implements TextureView.SurfaceTextur
         while (true) {
             try {
                 if (startDraw) {
-                    long start = System.currentTimeMillis();
-                    Canvas canvas = mSurface.lockHardwareCanvas();
-                    canvas.drawColor(Color.WHITE);
-//                    synchronized (mSurface) {
-                        if (data != null && height > 0 && width > 0 && end > 0) {
-                            if (!animation) {
-                                drawData(canvas, data);
-                            } else {
-                                drawDataAnimate(canvas, data);
+                    if (!block) {
+                        long start = System.currentTimeMillis();
+                        Canvas canvas = mSurface.lockHardwareCanvas();
+                        canvas.drawColor(Color.WHITE);
+                        synchronized (mSurface) {
+                            if (data != null && height > 0 && width > 0 && end > 0) {
+                                if (!animation) {
+                                    drawData(canvas, data);
+                                } else {
+                                    drawDataAnimate(canvas, data);
+                                }
                             }
                         }
-//                    }
 
-                    mSurface.unlockCanvasAndPost(canvas);
+                        mSurface.unlockCanvasAndPost(canvas);
 
-                    long end = System.currentTimeMillis() - start;
-                    if (end > 15)
-                        Log.w("RENDERNING", end + "ms");
-
+                        long end = System.currentTimeMillis() - start;
+                        if (end > 15)
+                            Log.w("RENDERNING", end + "ms");
+                    }
                     try {
                         Thread.sleep(1);
                     } catch (InterruptedException e) {

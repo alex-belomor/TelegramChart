@@ -39,6 +39,8 @@ public class SeekView extends View {
 
         paint = new Paint(Paint.ANTI_ALIAS_FLAG);
         paint.setStrokeWidth(3f);
+        paint.setStrokeJoin(Paint.Join.ROUND);
+        paint.setStrokeCap(Paint.Cap.ROUND);
 
         setRotationX(180);
     }
