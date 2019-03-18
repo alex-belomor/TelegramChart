@@ -45,6 +45,8 @@ public class GraphSeek extends FrameLayout {
 
     private float widthPerItem;
 
+    private boolean init = false;
+
     private SeekListener seekListener;
 
     public GraphSeek(@NonNull Context context, @Nullable AttributeSet attrs) {
@@ -83,6 +85,10 @@ public class GraphSeek extends FrameLayout {
     }
 
     public void redrawGraphs(int pos, boolean show) {
+        if (!init) {
+            init = true;
+            seekListener.onSeek(0, getItemsCount(), 0, finalMarginTo * zoom, zoom, widthPerItem);
+        }
         mSeekView.redrawGraphs(pos, show);
     }
 

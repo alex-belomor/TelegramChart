@@ -64,6 +64,8 @@ public class GraphView2 extends TextureView implements TextureView.SurfaceTextur
 
     private int start, end, count;
 
+    private boolean increaseHeight = false;
+
     private Paint paintLine;
 
     private float startY;
@@ -169,6 +171,7 @@ public class GraphView2 extends TextureView implements TextureView.SurfaceTextur
         float newHeightPerUser = 0f;
         int maxValue = 0;
 
+        paintLine.setAlpha(255);
         canvas.drawLine(0, startY, width, startY, paintLine);
 
         float transitionY = ((float) height - startY) / 5f;
@@ -187,6 +190,7 @@ public class GraphView2 extends TextureView implements TextureView.SurfaceTextur
         }
 
         if (newHeightPerUser != heightPerUser && heightPerUser > 0f) {
+            increaseHeight = newHeightPerUser > heightPerUser;
             animation = true;
             drawDataAnimate(canvas, modelChart);
             return;
@@ -248,14 +252,29 @@ public class GraphView2 extends TextureView implements TextureView.SurfaceTextur
 
         block = true;
 
+        float newHeightPerUser = calculateAnimatedHeight(modelChart);
+
+        increaseHeight = newHeightPerUser > heightPerUser;
+
+        paintLine.setAlpha(255);
         canvas.drawLine(0, startY, width, startY, paintLine);
 
         float transitionY = ((float) height - startY) / 5f;
+
+        //showed lines
+        paintLine.setAlpha((int) (255 * changeHeightMultiplier));
+        float showStart = (!increaseHeight ? 128 : -128) - (!increaseHeight ? 128 : -128) * changeHeightMultiplier;
         for (int i = 1; i < 6; i++) {
-            canvas.drawLine(0, startY + transitionY * i, width, startY + transitionY * i, paintLine);
+            canvas.drawLine(0, startY + transitionY * i + showStart * i, width, startY + transitionY * i + showStart * i, paintLine);
         }
 
-        float newHeightPerUser = calculateAnimatedHeight(modelChart);
+        //hiding lines
+        paintLine.setAlpha(255 - (int) (255 * changeHeightMultiplier));
+        float hideStart = (increaseHeight ? 128 : -128) * changeHeightMultiplier;
+        for (int i = 1; i < 6; i++) {
+            canvas.drawLine(0, startY + transitionY * i + hideStart * i, width, startY + transitionY * i + hideStart * i, paintLine);
+        }
+
 
         for (int i = 1; i < modelChart.getColumns().size(); i++) {
             if (modelChart.getColumns().get(i).show && redrawPos != i) {
