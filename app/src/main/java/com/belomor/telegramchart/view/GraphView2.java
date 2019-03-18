@@ -88,10 +88,10 @@ public class GraphView2 extends TextureView implements TextureView.SurfaceTextur
         paintLine.setColor(ContextCompat.getColor(getContext(), R.color.graph_line_color));
         paintLine.setStyle(Paint.Style.STROKE);
 
-
         setRotationX(180);
 
         mThread = new Thread(this, "GraphView2");
+        mThread.setPriority(Thread.MAX_PRIORITY);
         setSurfaceTextureListener(this);
     }
 
@@ -254,25 +254,35 @@ public class GraphView2 extends TextureView implements TextureView.SurfaceTextur
 
         float newHeightPerUser = calculateAnimatedHeight(modelChart);
 
-        increaseHeight = newHeightPerUser > heightPerUser;
+        if (newHeightPerUser != heightPerUser) {
+            increaseHeight = newHeightPerUser > heightPerUser;
 
-        paintLine.setAlpha(255);
-        canvas.drawLine(0, startY, width, startY, paintLine);
+            paintLine.setAlpha(255);
+            canvas.drawLine(0, startY, width, startY, paintLine);
 
-        float transitionY = ((float) height - startY) / 5f;
+            float transitionY = ((float) height - startY) / 5f;
 
-        //showed lines
-        paintLine.setAlpha((int) (255 * changeHeightMultiplier));
-        float showStart = (!increaseHeight ? 128 : -128) - (!increaseHeight ? 128 : -128) * changeHeightMultiplier;
-        for (int i = 1; i < 6; i++) {
-            canvas.drawLine(0, startY + transitionY * i + showStart * i, width, startY + transitionY * i + showStart * i, paintLine);
-        }
+            //showed lines
+            paintLine.setAlpha((int) (255 * changeHeightMultiplier));
+            float showStart = (!increaseHeight ? 128 : -128) - (!increaseHeight ? 128 : -128) * changeHeightMultiplier;
+            for (int i = 1; i < 6; i++) {
+                canvas.drawLine(0, startY + transitionY * i + showStart * i, width, startY + transitionY * i + showStart * i, paintLine);
+            }
 
-        //hiding lines
-        paintLine.setAlpha(255 - (int) (255 * changeHeightMultiplier));
-        float hideStart = (increaseHeight ? 128 : -128) * changeHeightMultiplier;
-        for (int i = 1; i < 6; i++) {
-            canvas.drawLine(0, startY + transitionY * i + hideStart * i, width, startY + transitionY * i + hideStart * i, paintLine);
+            //hiding lines
+            paintLine.setAlpha(255 - (int) (255 * changeHeightMultiplier));
+            float hideStart = (increaseHeight ? 128 : -128) * changeHeightMultiplier;
+            for (int i = 1; i < 6; i++) {
+                canvas.drawLine(0, startY + transitionY * i + hideStart * i, width, startY + transitionY * i + hideStart * i, paintLine);
+            }
+        } else {
+            paintLine.setAlpha(255);
+            canvas.drawLine(0, startY, width, startY, paintLine);
+
+            float transitionY = ((float) height - startY) / 5f;
+            for (int i = 1; i < 6; i++) {
+                canvas.drawLine(0, startY + transitionY * i, width, startY + transitionY * i, paintLine);
+            }
         }
 
 
@@ -351,7 +361,13 @@ public class GraphView2 extends TextureView implements TextureView.SurfaceTextur
                     if (!block) {
                         long start = System.currentTimeMillis();
                         Canvas canvas = mSurface.lockHardwareCanvas();
+                        Log.w("CANVAS_LOCK", (System.currentTimeMillis() - start) + "ms");
+
+                        start = System.currentTimeMillis();
                         canvas.drawColor(Color.WHITE);
+                        Log.w("CANVAS_BG", (System.currentTimeMillis() - start) + "ms");
+
+                        start = System.currentTimeMillis();
                         synchronized (mSurface) {
                             if (data != null && height > 0 && width > 0 && end > 0) {
                                 if (!animation) {
@@ -361,17 +377,28 @@ public class GraphView2 extends TextureView implements TextureView.SurfaceTextur
                                 }
                             }
                         }
+                        Log.w("CANVAS_PREPARING", (System.currentTimeMillis() - start) + "ms");
 
+
+                        start = System.currentTimeMillis();
                         mSurface.unlockCanvasAndPost(canvas);
+                        Log.w("CANVAS_POST", (System.currentTimeMillis() - start) + "ms");
 
                         long end = System.currentTimeMillis() - start;
                         if (end > 15)
                             Log.w("RENDERNING", end + "ms");
-                    }
-                    try {
-                        Thread.sleep(4);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
+
+                        try {
+                            Thread.sleep(2);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    } else {
+                        try {
+                            Thread.sleep(4);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
                     }
                 }
             } catch (Exception e) {

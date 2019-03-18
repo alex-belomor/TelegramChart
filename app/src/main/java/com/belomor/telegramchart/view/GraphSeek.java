@@ -125,7 +125,7 @@ public class GraphSeek extends FrameLayout {
         int change = (int) ((width - finalMarginTo) / widthPerItem);
         seekListener.onRightChange(change, -getOffsetX(), zoom, getNewWidthPerItem());
 
-        invalidate();
+//        invalidate();
         return false;
     }
 
@@ -162,7 +162,7 @@ public class GraphSeek extends FrameLayout {
         int change = (int) (finalMarginFrom / widthPerItem);
         seekListener.onLeftChange(change, -getOffsetX(), zoom, getNewWidthPerItem());
 
-        invalidate();
+//        invalidate();
         return false;
     }
 
@@ -218,7 +218,7 @@ public class GraphSeek extends FrameLayout {
 
         seekListener.onSeek(changeFrom, changeTo, -getOffsetX(), finalMarginTo * zoom, zoom, getNewWidthPerItem());
 
-        invalidate();
+//        invalidate();
         return false;
     }
 
