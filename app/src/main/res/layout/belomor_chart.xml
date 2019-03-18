@@ -19,20 +19,11 @@
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <com.belomor.telegramchart.view.GraphView2
-        android:id="@+id/graph_component"
-        android:layout_width="0dp"
-        android:layout_height="@dimen/chart_height"
-        android:layout_marginLeft="18dp"
-        android:layout_marginRight="18dp"
-        android:layerType="hardware"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/title" />
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="60dp"
         android:layout_height="0dp"
+        android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="@id/graph_component"
         app:layout_constraintLeft_toLeftOf="@id/graph_component"
         app:layout_constraintTop_toTopOf="@id/graph_component">
@@ -108,6 +99,17 @@
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toBottomOf="@id/graph_seek" />
+
+    <com.belomor.telegramchart.view.GraphView2
+        android:id="@+id/graph_component"
+        android:layout_width="0dp"
+        android:layout_height="@dimen/chart_height"
+        android:layout_marginLeft="18dp"
+        android:layout_marginRight="18dp"
+        android:layerType="hardware"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/title" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

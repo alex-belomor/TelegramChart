@@ -85,7 +85,9 @@ public class SeekView extends View {
     }
 
     private float calculateAnimatedHeight(ModelChart modelChart) {
-        changeHeightMultiplier += 0.05f;
+        changeHeightMultiplier += 0.033f;
+        if (changeHeightMultiplier >= 1f)
+            changeHeightMultiplier = 1f;
         int maxValue = 0;
         float difference = 0f;
         for (int i = 1; i < modelChart.getColumns().size(); i++) {
