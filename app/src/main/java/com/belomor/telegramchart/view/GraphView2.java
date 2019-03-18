@@ -64,6 +64,10 @@ public class GraphView2 extends TextureView implements TextureView.SurfaceTextur
 
     private int start, end, count;
 
+    private Paint paintLine;
+
+    private float startY;
+
 
     public GraphView2(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
@@ -74,6 +78,13 @@ public class GraphView2 extends TextureView implements TextureView.SurfaceTextur
         paint.setStrokeCap(Paint.Cap.ROUND);
         paint.setAntiAlias(true);
         paint.setStyle(Paint.Style.STROKE);
+
+        startY = 65f;
+
+        paintLine = new Paint(Paint.ANTI_ALIAS_FLAG);
+        paintLine.setStrokeWidth(3f);
+        paintLine.setColor(ContextCompat.getColor(getContext(), R.color.graph_line_color));
+        paintLine.setStyle(Paint.Style.STROKE);
 
 
         setRotationX(180);
@@ -86,7 +97,7 @@ public class GraphView2 extends TextureView implements TextureView.SurfaceTextur
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
 
-        height = MeasureSpec.getSize(heightMeasureSpec);
+        height = MeasureSpec.getSize(heightMeasureSpec) - (int) startY;
         width = MeasureSpec.getSize(widthMeasureSpec);
     }
 
@@ -99,8 +110,6 @@ public class GraphView2 extends TextureView implements TextureView.SurfaceTextur
             this.end = end;
             this.count = end - start;
             done = false;
-
-//            requestLayout();
         }
     }
 
@@ -114,7 +123,6 @@ public class GraphView2 extends TextureView implements TextureView.SurfaceTextur
         smoothMove = true;
         startDraw = true;
         moveAnimation = true;
-//        requestLayout();
     }
 
     public void redrawGraphs(int pos, boolean show) {
@@ -124,12 +132,11 @@ public class GraphView2 extends TextureView implements TextureView.SurfaceTextur
         redrawShow = show;
         done = false;
         startDraw = true;
-//        requestLayout();
     }
 
 
     private float calculateAnimatedHeight(ModelChart modelChart) {
-        changeHeightMultiplier += 0.05f;
+        changeHeightMultiplier += 0.025f;
         if (changeHeightMultiplier >= 1f)
             changeHeightMultiplier = 1f;
         int maxValue = 0;
@@ -162,6 +169,13 @@ public class GraphView2 extends TextureView implements TextureView.SurfaceTextur
         float newHeightPerUser = 0f;
         int maxValue = 0;
 
+        canvas.drawLine(0, startY, width, startY, paintLine);
+
+        float transitionY = ((float) height - startY) / 5f;
+        for (int i = 1; i < 6; i++) {
+            canvas.drawLine(0, startY + transitionY * i, width, startY + transitionY * i, paintLine);
+        }
+
         for (int i = 1; i < modelChart.getColumns().size(); i++) {
             if (modelChart.getColumns().get(i).show) {
                 int localMaxValue = modelChart.getColumns().get(i).getMaxValueInInterval(start, end);
@@ -189,16 +203,17 @@ public class GraphView2 extends TextureView implements TextureView.SurfaceTextur
                 paint.setAlpha(255);
 
                 Path p = new Path();
-                p.moveTo(latestX, modelChart.getColumnInt(i, 0) * heightPerUser);
+                p.moveTo(latestX, startY + modelChart.getColumnInt(i, 0) * heightPerUser);
 
                 for (int j = 1; j < modelChart.getColumnSize(0); j++) {
-                    p.lineTo(latestX + widthPerSize, modelChart.getColumnInt(i, j) * heightPerUser);
+                    p.lineTo(latestX + widthPerSize, startY + modelChart.getColumnInt(i, j) * heightPerUser);
                     latestX = latestX + widthPerSize;
                 }
 
                 canvas.drawPath(p, paint);
             }
         }
+
 //
 ////        canvas.scale(1f, -1f);
 //        Paint paintText = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -223,6 +238,8 @@ public class GraphView2 extends TextureView implements TextureView.SurfaceTextur
         Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
         paint.setColor(ContextCompat.getColor(getContext(), R.color.graph_text_color));
         paint.setStrokeWidth(1.2f);
+
+//        for (int i = 0; i<)
     }
 
     private void drawDataAnimate(Canvas canvas, ModelChart modelChart) {
@@ -230,6 +247,13 @@ public class GraphView2 extends TextureView implements TextureView.SurfaceTextur
             return;
 
         block = true;
+
+        canvas.drawLine(0, startY, width, startY, paintLine);
+
+        float transitionY = ((float) height - startY) / 5f;
+        for (int i = 1; i < 6; i++) {
+            canvas.drawLine(0, startY + transitionY * i, width, startY + transitionY * i, paintLine);
+        }
 
         float newHeightPerUser = calculateAnimatedHeight(modelChart);
 
@@ -245,10 +269,10 @@ public class GraphView2 extends TextureView implements TextureView.SurfaceTextur
                     paint.setAlpha((int) (255 * changeHeightMultiplier));
 
                 Path p = new Path();
-                p.moveTo(latestX, modelChart.getColumnInt(i, 0) * newHeightPerUser);
+                p.moveTo(latestX, startY + modelChart.getColumnInt(i, 0) * newHeightPerUser);
 
                 for (int j = 1; j < modelChart.getColumnSize(0); j++) {
-                    p.lineTo(latestX + widthPerSize, modelChart.getColumnInt(i, j) * newHeightPerUser);
+                    p.lineTo(latestX + widthPerSize, startY + modelChart.getColumnInt(i, j) * newHeightPerUser);
                     latestX = latestX + widthPerSize;
                 }
 
@@ -264,15 +288,16 @@ public class GraphView2 extends TextureView implements TextureView.SurfaceTextur
             paint.setAlpha((int) (redrawShow ? 255 * changeHeightMultiplier : 255 - 255 * changeHeightMultiplier));
 
             Path p = new Path();
-            p.moveTo(latestX, modelChart.getColumnInt(redrawPos, 0) * newHeightPerUser);
+            p.moveTo(latestX, startY + modelChart.getColumnInt(redrawPos, 0) * newHeightPerUser);
 
             for (int j = 1; j < modelChart.getColumnSize(0); j++) {
-                p.lineTo(latestX + widthPerSize, modelChart.getColumnInt(redrawPos, j) * newHeightPerUser);
+                p.lineTo(latestX + widthPerSize, startY + modelChart.getColumnInt(redrawPos, j) * newHeightPerUser);
                 latestX = latestX + widthPerSize;
             }
 
             canvas.drawPath(p, paint);
         }
+
 
         block = false;
     }
@@ -325,7 +350,7 @@ public class GraphView2 extends TextureView implements TextureView.SurfaceTextur
                             Log.w("RENDERNING", end + "ms");
                     }
                     try {
-                        Thread.sleep(1);
+                        Thread.sleep(4);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
