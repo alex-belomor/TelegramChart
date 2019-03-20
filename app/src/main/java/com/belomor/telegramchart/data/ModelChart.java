@@ -23,6 +23,10 @@ public class ModelChart {
         return ((Double) columns.get(posColumn).get(pos + 1)).intValue();
     }
 
+    public long getColumnLong(int posColumn, int pos) {
+        return ((Double) columns.get(posColumn).get(pos + 1)).longValue();
+    }
+
     public int getColumnSize(int posColumn) {
         return columns.get(posColumn).size() - 1;
     }

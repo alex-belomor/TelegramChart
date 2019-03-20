@@ -16,7 +16,10 @@ import android.view.TextureView;
 import com.belomor.telegramchart.R;
 import com.belomor.telegramchart.data.ModelChart;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
@@ -230,6 +233,8 @@ public class GraphView2 extends TextureView implements TextureView.SurfaceTextur
             }
         }
 
+        drawDates(canvas, modelChart);
+
 //
 ////        canvas.scale(1f, -1f);
 //        Paint paintText = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -248,6 +253,42 @@ public class GraphView2 extends TextureView implements TextureView.SurfaceTextur
 
     public void drawMaxValue(int maxValue) {
 
+    }
+
+    private void drawDates(Canvas canvas, ModelChart modelChart) {
+        int itemsDate = modelChart.getColumns().get(0).size() - 1;
+        DateFormat simple = new SimpleDateFormat("MMM dd");
+
+        float latestDateX = offsetX;
+        Paint paintText = new Paint(Paint.ANTI_ALIAS_FLAG);
+        int textSize = 35;
+        canvas.save();
+        paintText.setTextSize(textSize);
+        canvas.scale(1f, -1f, (float) width / 2f, (float) height / 2f);
+        paintText.setColor(ContextCompat.getColor(getContext(), R.color.graph_text_color));
+
+        int denominator = 1;
+
+        float viewPort = widthPerSize * (float) (itemsDate - 1);
+
+        denominator = (int) viewPort / (int) width;
+
+        float widthDate = viewPort / (6f * (float) denominator);
+
+        paintText.setTextAlign(Paint.Align.CENTER);
+
+        for (int i = 1; i < itemsDate; i++) {
+
+            if (i % (itemsDate / (6 * denominator)) == 0) {
+                long date = data.getColumnLong(0, i);
+                Date result = new Date(date);
+                String text = simple.format(result);
+                canvas.drawText(text, offsetX + ((float) i * widthPerSize - (widthDate / 2f)), height - textSize + 15, paintText);
+                latestDateX += widthDate;
+            }
+        }
+
+        canvas.restore();
     }
 
     public void drawLines(Canvas canvas, boolean animate, boolean increase) {
@@ -340,6 +381,8 @@ public class GraphView2 extends TextureView implements TextureView.SurfaceTextur
             }
         }
 
+        drawDates(canvas, modelChart);
+
         block = false;
     }
 
@@ -394,9 +437,9 @@ public class GraphView2 extends TextureView implements TextureView.SurfaceTextur
 
                         ended = (System.currentTimeMillis() - start);
                         if (ended > 16) {
-                            Log.e("CANVAS_PREPARING", ended+"ms");
+                            Log.e("CANVAS_PREPARING", ended + "ms");
                         } else {
-                            Log.w("CANVAS_PREPARING", ended+"ms");
+                            Log.w("CANVAS_PREPARING", ended + "ms");
                         }
 
 
@@ -405,9 +448,9 @@ public class GraphView2 extends TextureView implements TextureView.SurfaceTextur
                         mSurface.unlockCanvasAndPost(canvas);
                         ended = (System.currentTimeMillis() - start);
                         if (ended > 16) {
-                            Log.e("CANVAS_POST", ended+"ms");
+                            Log.e("CANVAS_POST", ended + "ms");
                         } else {
-                            Log.w("CANVAS_POST", ended+"ms");
+                            Log.w("CANVAS_POST", ended + "ms");
                         }
 
                         try {

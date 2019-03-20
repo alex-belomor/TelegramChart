@@ -41,6 +41,8 @@ public class GraphSeek extends FrameLayout {
     private int finalMarginTo;
     private float percent;
 
+    private int maxZoomWidth;
+
     private ModelChart data;
 
     private float widthPerItem;
@@ -64,6 +66,7 @@ public class GraphSeek extends FrameLayout {
 
 //        height = MeasureSpec.getSize(heightMeasureSpec);
         width = MeasureSpec.getSize(widthMeasureSpec);
+        maxZoomWidth = width / 100 * 85;
 
         percent = (float) width / 100;
 
@@ -113,6 +116,11 @@ public class GraphSeek extends FrameLayout {
                 if (layoutParams.rightMargin < 0)
                     layoutParams.rightMargin = 0;
 
+                if (layoutParams.rightMargin + finalMarginFrom > maxZoomWidth) {
+                    int correctMargin = maxZoomWidth - finalMarginFrom;
+                    layoutParams.rightMargin = correctMargin;
+                }
+
                 finalMarginTo = layoutParams.rightMargin;
 
                 view.setLayoutParams(layoutParams);
@@ -149,6 +157,11 @@ public class GraphSeek extends FrameLayout {
 
                 if (layoutParams.leftMargin < 0)
                     layoutParams.leftMargin = 0;
+
+                if (layoutParams.leftMargin + finalMarginTo > maxZoomWidth) {
+                    int correctMargin = maxZoomWidth - finalMarginTo;
+                    layoutParams.leftMargin = correctMargin;
+                }
 
                 finalMarginFrom = layoutParams.leftMargin;
 
@@ -223,6 +236,11 @@ public class GraphSeek extends FrameLayout {
     }
 
     private float getZoom() {
+        float marginZoom = (100 - (((float) finalMarginFrom + (float) finalMarginTo) / percent)) / 100;
+        return marginZoom;
+    }
+
+    private float getZoom(int finalMarginFrom, int finalMarginTo) {
         float marginZoom = (100 - (((float) finalMarginFrom + (float) finalMarginTo) / percent)) / 100;
         return marginZoom;
     }
