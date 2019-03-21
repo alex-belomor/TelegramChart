@@ -84,6 +84,8 @@ public class GraphView2 extends TextureView implements TextureView.SurfaceTextur
 
     private float startY;
 
+    private boolean threadRunning;
+
 
     public GraphView2(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
@@ -301,20 +303,23 @@ public class GraphView2 extends TextureView implements TextureView.SurfaceTextur
             paintText.setAlpha((int) (255 * changeHeightMultiplier));
             float showStart = (!increaseHeight ? 128 : -128) - (!increaseHeight ? 128 : -128) * changeHeightMultiplier;
             for (int i = 1; i < 6; i++) {
-                canvas.drawText(String.valueOf((int) ((float) newCalculatedMaxValue / 5f * (float) i)), 0, height - startY - transitionY * i - 16 - showStart * i, paintText);
+                int value = (int) ((float) newCalculatedMaxValue / 5f * (float) i);
+                canvas.drawText(String.valueOf(value >= 0 ? value : 0), 0, height - startY - transitionY * i - 16 - showStart * i, paintText);
             }
 
             //hiding lines
             paintText.setAlpha(255 - (int) (255 * changeHeightMultiplier));
             float hideStart = (increaseHeight ? 128 : -128) * changeHeightMultiplier;
             for (int i = 1; i < 6; i++) {
-                canvas.drawText(String.valueOf((int) ((float) calculatedMaxValue / 5f * (float) i)), 0, height - startY - transitionY * i - 16 - hideStart * i, paintText);
+                int value = (int) ((float) calculatedMaxValue / 5f * (float) i);
+                canvas.drawText(String.valueOf(value >= 0 ? value : 0), 0, height - startY - transitionY * i - 16 - hideStart * i, paintText);
             }
         } else {
             paintText.setAlpha(255);
 
             for (int i = 1; i < 6; i++) {
-                canvas.drawText(String.valueOf((int) ((float) calculatedMaxValue / 5f * (float) i)), 0, height - startY - transitionY * i - 16, paintText);
+                int value = (int) ((float) calculatedMaxValue / 5f * (float) i);
+                canvas.drawText(String.valueOf(value >= 0 ? value : 0), 0, height - startY - transitionY * i - 16, paintText);
             }
         }
 
@@ -447,6 +452,7 @@ public class GraphView2 extends TextureView implements TextureView.SurfaceTextur
     @Override
     public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
         mSurface = new Surface(surface);
+        threadRunning = true;
         mThread.start();
     }
 
@@ -457,6 +463,7 @@ public class GraphView2 extends TextureView implements TextureView.SurfaceTextur
 
     @Override
     public boolean onSurfaceTextureDestroyed(SurfaceTexture surface) {
+        threadRunning = false;
         return false;
     }
 
@@ -468,7 +475,7 @@ public class GraphView2 extends TextureView implements TextureView.SurfaceTextur
     @Override
     public void run() {
 
-        while (true) {
+        while (threadRunning) {
             try {
                 if (startDraw) {
                     if (!block) {
@@ -517,12 +524,15 @@ public class GraphView2 extends TextureView implements TextureView.SurfaceTextur
                             e.printStackTrace();
                         }
                     } else {
+                        Log.d("TEST", "test");
 //                        try {
 //                            Thread.sleep(2);
 //                        } catch (InterruptedException e) {
 //                            e.printStackTrace();
 //                        }
                     }
+                } else {
+                    Log.d("TEST", "test");
                 }
             } catch (Exception e) {
                 Log.e("GraphView2", e.toString());

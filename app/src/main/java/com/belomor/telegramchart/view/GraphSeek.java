@@ -24,7 +24,6 @@ import butterknife.OnTouch;
 
 public class GraphSeek extends FrameLayout {
 
-
     @BindView(R.id.from)
     ImageView mFrom;
 

@@ -3,4 +3,5 @@
     <dimen name="chart_height">260dp</dimen>
     <dimen name="text_medium">18sp</dimen>
     <dimen name="graph_seek_heigh">40dp</dimen>
+    <dimen name="item_height">64dp</dimen>
 </resources>

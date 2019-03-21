@@ -113,7 +113,6 @@ public class SeekView extends View {
     private void animateChangeDrawData(Canvas canvas, ModelChart modelChart) {
         widthPerSize = (float) width / (float) (getItemsCount());
 
-
         float newHeightPerUser = calculateAnimatedHeight(modelChart);
 
         paint.setAntiAlias(true);
@@ -177,9 +176,6 @@ public class SeekView extends View {
         }
         widthPerSize = (float) width / (float) getItemsCount();
 
-
-        paint.setAntiAlias(true);
-
         for (int i = 1; i < modelChart.getColumns().size(); i++) {
             float latestX = 0;
             String color = modelChart.getColor().getColorByPos(i - 1);
@@ -196,6 +192,8 @@ public class SeekView extends View {
 
             canvas.drawPath(p, paint);
         }
+
+        postInvalidate();
 
         dataDrawed = true;
     }
