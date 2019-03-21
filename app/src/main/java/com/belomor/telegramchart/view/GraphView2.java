@@ -29,6 +29,7 @@ public class GraphView2 extends TextureView implements TextureView.SurfaceTextur
     private ModelChart data;
 
     private Paint paint;
+    private Paint paintText;
 
     private Thread mThread;
 
@@ -77,6 +78,8 @@ public class GraphView2 extends TextureView implements TextureView.SurfaceTextur
 
     private Paint paintLine;
 
+    private int maxValue = 0;
+
     private float startY;
 
 
@@ -86,6 +89,11 @@ public class GraphView2 extends TextureView implements TextureView.SurfaceTextur
         setOpaque(false);
 
         clearPaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.CLEAR));
+
+        paintText = new Paint(Paint.ANTI_ALIAS_FLAG);
+        int textSize = 38;
+        paintText.setTextSize(textSize);
+        paintText.setColor(ContextCompat.getColor(getContext(), R.color.graph_text_color));
 
         paint = new Paint(Paint.ANTI_ALIAS_FLAG);
         paint.setStrokeWidth(6f);
@@ -152,7 +160,7 @@ public class GraphView2 extends TextureView implements TextureView.SurfaceTextur
 
 
     private float calculateAnimatedHeight(ModelChart modelChart) {
-        changeHeightMultiplier += 0.025f;
+        changeHeightMultiplier += 0.02f;
         if (changeHeightMultiplier >= 1f)
             changeHeightMultiplier = 1f;
         int maxValue = 0;
@@ -171,6 +179,7 @@ public class GraphView2 extends TextureView implements TextureView.SurfaceTextur
             animation = false;
             changeHeightMultiplier = 0f;
             heightPerUser += difference;
+            this.maxValue = maxValue;
             maxGlobalValue = maxValue;
             redrawGraph = false;
             redrawPos = -1;
@@ -212,6 +221,7 @@ public class GraphView2 extends TextureView implements TextureView.SurfaceTextur
 
         maxGlobalValue = maxValue;
         heightPerUser = newHeightPerUser;
+        this.maxValue = maxValue;
 
         for (int i = 1; i < modelChart.getColumns().size(); i++) {
             if (modelChart.getColumns().get(i).show) {
@@ -234,25 +244,69 @@ public class GraphView2 extends TextureView implements TextureView.SurfaceTextur
         }
 
         drawDates(canvas, modelChart);
+        drawValues(canvas, modelChart);
 
-//
-////        canvas.scale(1f, -1f);
-//        Paint paintText = new Paint(Paint.ANTI_ALIAS_FLAG);
-//        int textSize = 35;
-//        paintText.setTextSize(textSize);
-//        paintText.setColor(ContextCompat.getColor(getContext(), R.color.graph_text_color));
-//        for (int i = 0; i < 6; i++) {
-//            float floatMaxValue = ((float)maxGlobalValue / 5f * (float) i);
-//            String text = String.valueOf(Float.valueOf(floatMaxValue).intValue());
-//            float yInterval = height / 5;
-//            float y = yInterval * i - textSize * i;
-//            canvas.drawText(text, 0, y, paintText);
-//        }
         startDraw = false;
     }
 
-    public void drawMaxValue(int maxValue) {
+    private void drawValues(Canvas canvas, ModelChart modelChart) {
 
+        float newHeightPerUser = calculateAnimatedHeight(modelChart);
+
+        canvas.save();
+        canvas.scale(1f, -1f, (float) width / 2f, (float) height / 2f);
+
+        paintText.setTextAlign(Paint.Align.LEFT);
+
+        int newMaxValue = 0;
+
+        for (int i = 1; i < modelChart.getColumns().size(); i++) {
+            if (modelChart.getColumns().get(i).show) {
+                int localMaxValue = modelChart.getColumns().get(i).getMaxValueInInterval(start, end);
+                if (localMaxValue > newMaxValue) {
+                    newMaxValue = localMaxValue;
+                }
+            }
+        }
+
+
+        float transitionY = ((float) height - startY) / 5f;
+
+        paintText.setAlpha(255);
+        canvas.drawText("0", 0, height - startY - 16, paintText);
+
+        int newCalculatedMaxValue = newMaxValue - (int) ((((height) - transitionY * 5f)) / newHeightPerUser);
+        int calculatedMaxValue = maxValue - (int) ((((height) - transitionY * 5f)) / heightPerUser);
+
+        if (newHeightPerUser != heightPerUser) {
+            increaseHeight = newHeightPerUser > heightPerUser;
+
+            paintText.setAlpha(255);
+            canvas.drawText("0", 0, height - startY - 16, paintText);
+
+
+            //showed lines
+            paintLine.setAlpha((int) (255 * changeHeightMultiplier));
+            float showStart = (!increaseHeight ? 128 : -128) - (!increaseHeight ? 128 : -128) * changeHeightMultiplier;
+            for (int i = 1; i < 6; i++) {
+                canvas.drawText(String.valueOf((int) ((float) newCalculatedMaxValue / 5f * (float) i)), 0, height - startY - transitionY * i - 16 - showStart * i, paintText);
+            }
+
+            //hiding lines
+            paintLine.setAlpha(255 - (int) (255 * changeHeightMultiplier));
+            float hideStart = (increaseHeight ? 128 : -128) * changeHeightMultiplier;
+            for (int i = 1; i < 6; i++) {
+                canvas.drawText(String.valueOf((int) ((float) calculatedMaxValue / 5f * (float) i)), 0, height - startY - transitionY * i - 16 - hideStart * i, paintText);
+            }
+        } else {
+            paintLine.setAlpha(255);
+
+            for (int i = 1; i < 6; i++) {
+                canvas.drawText(String.valueOf((int) ((float) calculatedMaxValue / 5f * (float) i)), 0, height - startY - transitionY * i - 16, paintText);
+            }
+        }
+
+        canvas.restore();
     }
 
     private void drawDates(Canvas canvas, ModelChart modelChart) {
@@ -260,7 +314,6 @@ public class GraphView2 extends TextureView implements TextureView.SurfaceTextur
         DateFormat simple = new SimpleDateFormat("MMM dd");
 
         float latestDateX = offsetX;
-        Paint paintText = new Paint(Paint.ANTI_ALIAS_FLAG);
         int textSize = 35;
         canvas.save();
         paintText.setTextSize(textSize);
@@ -277,10 +330,9 @@ public class GraphView2 extends TextureView implements TextureView.SurfaceTextur
 
         paintText.setTextAlign(Paint.Align.CENTER);
 
-        for (int i = 1; i < itemsDate; i++) {
-
+        for (int i = 0; i < itemsDate; i++) {
             if (i % (itemsDate / (6 * denominator)) == 0) {
-                long date = data.getColumnLong(0, i);
+                long date = data.getColumnLong(0, i );
                 Date result = new Date(date);
                 String text = simple.format(result);
                 canvas.drawText(text, offsetX + ((float) i * widthPerSize - (widthDate / 2f)), height - textSize + 15, paintText);
@@ -289,14 +341,6 @@ public class GraphView2 extends TextureView implements TextureView.SurfaceTextur
         }
 
         canvas.restore();
-    }
-
-    public void drawLines(Canvas canvas, boolean animate, boolean increase) {
-        Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        paint.setColor(ContextCompat.getColor(getContext(), R.color.graph_text_color));
-        paint.setStrokeWidth(1.2f);
-
-//        for (int i = 0; i<)
     }
 
     private void drawDataAnimate(Canvas canvas, ModelChart modelChart) {
@@ -382,6 +426,7 @@ public class GraphView2 extends TextureView implements TextureView.SurfaceTextur
         }
 
         drawDates(canvas, modelChart);
+        drawValues(canvas, modelChart);
 
         block = false;
     }
