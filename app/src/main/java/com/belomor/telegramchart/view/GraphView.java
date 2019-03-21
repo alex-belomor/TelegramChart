@@ -42,6 +42,8 @@ public class GraphView extends FrameLayout implements TextSwitcher.ViewFactory {
     @BindViews({R.id.ts_5, R.id.ts_4, R.id.ts_3, R.id.ts_2, R.id.ts_1, R.id.ts_0})
     List<TextSwitcher> mTextViewSwitcher;
 
+    ItemDivider dividerItemDecoration;
+
     private ModelChart data;
 
     private int maxValue = 0;
@@ -131,7 +133,11 @@ public class GraphView extends FrameLayout implements TextSwitcher.ViewFactory {
     }
 
     public void updateTheme() {
-        ItemDivider dividerItemDecoration = new ItemDivider(getResources().getDrawable(GlobalManager.nightMode ? R.drawable.divider_night : R.drawable.divider_light, null));
+        if (dividerItemDecoration != null) {
+            mDataList.removeItemDecoration(dividerItemDecoration);
+        }
+
+        dividerItemDecoration = new ItemDivider(getResources().getDrawable(GlobalManager.nightMode ? R.drawable.divider_night : R.drawable.divider_light, null));
 
         mDataList.addItemDecoration(dividerItemDecoration);
 

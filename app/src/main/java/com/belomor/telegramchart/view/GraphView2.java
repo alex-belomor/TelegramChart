@@ -10,6 +10,7 @@ import android.graphics.PorterDuffXfermode;
 import android.graphics.SurfaceTexture;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.Surface;
 import android.view.TextureView;
 
@@ -153,6 +154,11 @@ public class GraphView2 extends TextureView implements TextureView.SurfaceTextur
         smoothMove = true;
         startDraw = true;
         moveAnimation = true;
+    }
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        return super.onTouchEvent(event);
     }
 
     public void redrawGraphs(int pos, boolean show) {
