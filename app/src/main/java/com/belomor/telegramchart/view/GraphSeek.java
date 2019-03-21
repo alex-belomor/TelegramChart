@@ -1,6 +1,7 @@
 package com.belomor.telegramchart.view;
 
 import android.content.Context;
+import android.graphics.drawable.ColorDrawable;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -8,6 +9,7 @@ import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 
+import com.belomor.telegramchart.GlobalManager;
 import com.belomor.telegramchart.R;
 import com.belomor.telegramchart.SeekListener;
 import com.belomor.telegramchart.data.ModelChart;
@@ -15,6 +17,7 @@ import com.belomor.telegramchart.data.ModelChart;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.core.content.ContextCompat;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnTouch;
@@ -30,6 +33,18 @@ public class GraphSeek extends FrameLayout {
 
     @BindView(R.id.graph_seek_view)
     SeekView mSeekView;
+
+    @BindView(R.id.off_1)
+    View mOff1;
+
+    @BindView(R.id.off_2)
+    View mOff2;
+
+    @BindView(R.id.top_border)
+    View mTopBorder;
+
+    @BindView(R.id.bottom_border)
+    View mBottomBorder;
 
     private int width = 0;
     private float zoom = 1f;
@@ -58,6 +73,8 @@ public class GraphSeek extends FrameLayout {
         addView(view);
 
         ButterKnife.bind(this, view);
+
+        updateTheme();
     }
 
     @Override
@@ -72,6 +89,15 @@ public class GraphSeek extends FrameLayout {
 
         if (data != null)
             widthPerItem = (float) width / (float) getItemsCount();
+    }
+
+    public void updateTheme() {
+        mFrom.setImageDrawable(new ColorDrawable(ContextCompat.getColor(getContext(), GlobalManager.nightMode ? R.color.seek_view_border_color_dark : R.color.seek_view_border_color_light)));
+        mTo.setImageDrawable(new ColorDrawable(ContextCompat.getColor(getContext(), GlobalManager.nightMode ? R.color.seek_view_border_color_dark : R.color.seek_view_border_color_light)));
+        mTopBorder.setBackgroundColor(ContextCompat.getColor(getContext(), GlobalManager.nightMode ? R.color.seek_view_border_color_dark : R.color.seek_view_border_color_light));
+        mBottomBorder.setBackgroundColor(ContextCompat.getColor(getContext(), GlobalManager.nightMode ? R.color.seek_view_border_color_dark : R.color.seek_view_border_color_light));
+        mOff1.setBackgroundColor(ContextCompat.getColor(getContext(), GlobalManager.nightMode ? R.color.seek_view_off_color_dark : R.color.seek_view_off_color_light));
+        mOff2.setBackgroundColor(ContextCompat.getColor(getContext(), GlobalManager.nightMode ? R.color.seek_view_off_color_dark : R.color.seek_view_off_color_light));
     }
 
     public void setOnSeekListener(SeekListener seekListener) {

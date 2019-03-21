@@ -3,10 +3,25 @@
     <color name="colorPrimary_light">#517DA2</color>
     <color name="colorPrimaryDark_light">#426382</color>
     <color name="colorAccent_light">#3896D4</color>
+    <color name="chart_background_light">#FFFFFF</color>
+    <color name="window_background_light">#F0F0F0</color>
+    <color name="chart_line_light">#F1F1F2</color>
+    <color name="chart_text_light">#96A2AA</color>
+    <color name="seek_view_border_color_light">#A6CBD6DF</color>
+    <color name="seek_view_off_color_light">#BFF5F8F9</color>
 
-    <color name="colorPrimary_dark">#008577</color>
-    <color name="colorPrimaryDark_dark">#00574B</color>
+    <color name="colorPrimary_dark">#212d3b</color>
+    <color name="colorPrimaryDark_dark">#1A242E</color>
     <color name="colorAccent_dark">#D81B60</color>
+    <color name="chart_background_dark">#1D2733</color>
+    <color name="window_background_dark">#151E27</color>
+    <color name="chart_line_dark">#161F2B</color>
+    <color name="chart_text_dark">#506372</color>
+    <color name="seek_view_border_color_dark">#A62B4256</color>
+    <color name="seek_view_off_color_dark">#BF19232E</color>
+
+    <color name="white">#fff</color>
+    <color name="black">#000</color>
 
 
     <color name="text_color_primary_dark">#fff</color>

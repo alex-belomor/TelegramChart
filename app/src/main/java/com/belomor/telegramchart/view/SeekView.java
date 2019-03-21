@@ -113,7 +113,6 @@ public class SeekView extends View {
     private void animateChangeDrawData(Canvas canvas, ModelChart modelChart) {
         widthPerSize = (float) width / (float) (getItemsCount());
 
-        canvas.drawColor(Color.WHITE);
 
         float newHeightPerUser = calculateAnimatedHeight(modelChart);
 
@@ -178,7 +177,6 @@ public class SeekView extends View {
         }
         widthPerSize = (float) width / (float) getItemsCount();
 
-        canvas.drawColor(Color.WHITE);
 
         paint.setAntiAlias(true);
 

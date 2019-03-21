@@ -13,6 +13,7 @@ import android.util.Log;
 import android.view.Surface;
 import android.view.TextureView;
 
+import com.belomor.telegramchart.GlobalManager;
 import com.belomor.telegramchart.R;
 import com.belomor.telegramchart.data.ModelChart;
 
@@ -93,7 +94,6 @@ public class GraphView2 extends TextureView implements TextureView.SurfaceTextur
         paintText = new Paint(Paint.ANTI_ALIAS_FLAG);
         int textSize = 38;
         paintText.setTextSize(textSize);
-        paintText.setColor(ContextCompat.getColor(getContext(), R.color.graph_text_color));
 
         paint = new Paint(Paint.ANTI_ALIAS_FLAG);
         paint.setStrokeWidth(6f);
@@ -107,7 +107,6 @@ public class GraphView2 extends TextureView implements TextureView.SurfaceTextur
         paintLine = new Paint(Paint.ANTI_ALIAS_FLAG);
         paintLine.setStrokeWidth(3f);
         paintLine.setAntiAlias(true);
-        paintLine.setColor(ContextCompat.getColor(getContext(), R.color.graph_line_color));
         paintLine.setStyle(Paint.Style.STROKE);
 
         setRotationX(180);
@@ -115,6 +114,13 @@ public class GraphView2 extends TextureView implements TextureView.SurfaceTextur
         mThread = new Thread(this, "GraphView2");
         mThread.setPriority(Thread.MAX_PRIORITY);
         setSurfaceTextureListener(this);
+
+        updateColors();
+    }
+
+    public void updateColors() {
+        paintText.setColor(ContextCompat.getColor(getContext(), GlobalManager.nightMode ? R.color.chart_text_dark : R.color.chart_text_light));
+        paintLine.setColor(ContextCompat.getColor(getContext(), GlobalManager.nightMode ? R.color.chart_line_dark : R.color.chart_line_light));
     }
 
     @Override
@@ -286,20 +292,20 @@ public class GraphView2 extends TextureView implements TextureView.SurfaceTextur
 
 
             //showed lines
-            paintLine.setAlpha((int) (255 * changeHeightMultiplier));
+            paintText.setAlpha((int) (255 * changeHeightMultiplier));
             float showStart = (!increaseHeight ? 128 : -128) - (!increaseHeight ? 128 : -128) * changeHeightMultiplier;
             for (int i = 1; i < 6; i++) {
                 canvas.drawText(String.valueOf((int) ((float) newCalculatedMaxValue / 5f * (float) i)), 0, height - startY - transitionY * i - 16 - showStart * i, paintText);
             }
 
             //hiding lines
-            paintLine.setAlpha(255 - (int) (255 * changeHeightMultiplier));
+            paintText.setAlpha(255 - (int) (255 * changeHeightMultiplier));
             float hideStart = (increaseHeight ? 128 : -128) * changeHeightMultiplier;
             for (int i = 1; i < 6; i++) {
                 canvas.drawText(String.valueOf((int) ((float) calculatedMaxValue / 5f * (float) i)), 0, height - startY - transitionY * i - 16 - hideStart * i, paintText);
             }
         } else {
-            paintLine.setAlpha(255);
+            paintText.setAlpha(255);
 
             for (int i = 1; i < 6; i++) {
                 canvas.drawText(String.valueOf((int) ((float) calculatedMaxValue / 5f * (float) i)), 0, height - startY - transitionY * i - 16, paintText);
@@ -310,6 +316,8 @@ public class GraphView2 extends TextureView implements TextureView.SurfaceTextur
     }
 
     private void drawDates(Canvas canvas, ModelChart modelChart) {
+        paintText.setAlpha(255);
+
         int itemsDate = modelChart.getColumns().get(0).size() - 1;
         DateFormat simple = new SimpleDateFormat("MMM dd");
 
@@ -318,7 +326,6 @@ public class GraphView2 extends TextureView implements TextureView.SurfaceTextur
         canvas.save();
         paintText.setTextSize(textSize);
         canvas.scale(1f, -1f, (float) width / 2f, (float) height / 2f);
-        paintText.setColor(ContextCompat.getColor(getContext(), R.color.graph_text_color));
 
         int denominator = 1;
 

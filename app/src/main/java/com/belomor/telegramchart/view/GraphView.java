@@ -10,6 +10,7 @@ import android.widget.TextSwitcher;
 import android.widget.TextView;
 
 import com.belomor.telegramchart.BelomorUtil;
+import com.belomor.telegramchart.GlobalManager;
 import com.belomor.telegramchart.ItemDivider;
 import com.belomor.telegramchart.R;
 import com.belomor.telegramchart.SeekListener;
@@ -44,6 +45,8 @@ public class GraphView extends FrameLayout implements TextSwitcher.ViewFactory {
     private ModelChart data;
 
     private int maxValue = 0;
+
+    DataAdapter dataAdapter;
 
     int start, end;
 
@@ -108,7 +111,7 @@ public class GraphView extends FrameLayout implements TextSwitcher.ViewFactory {
         this.data = chartList;
 
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getContext());
-        ItemDivider dividerItemDecoration = new ItemDivider(getResources().getDrawable(R.drawable.divider, null));
+        ItemDivider dividerItemDecoration = new ItemDivider(getResources().getDrawable(GlobalManager.nightMode ? R.drawable.divider_night : R.drawable.divider_light, null));
 
         mDataList.addItemDecoration(dividerItemDecoration);
 
@@ -116,7 +119,7 @@ public class GraphView extends FrameLayout implements TextSwitcher.ViewFactory {
         mGraphSeek.setChartData(chartList);
 
         mDataList.setLayoutManager(linearLayoutManager);
-        DataAdapter dataAdapter = new DataAdapter();
+        dataAdapter = new DataAdapter();
         dataAdapter.setGraphViewListener((pos, checked) -> {
             mGraph.redrawGraphs(pos, checked);
             mGraphSeek.redrawGraphs(pos, checked);
@@ -125,6 +128,20 @@ public class GraphView extends FrameLayout implements TextSwitcher.ViewFactory {
         dataAdapter.setColumnsData(chartList);
         mDataList.setAdapter(dataAdapter);
         calculateMaxValue();
+    }
+
+    public void updateTheme() {
+        ItemDivider dividerItemDecoration = new ItemDivider(getResources().getDrawable(GlobalManager.nightMode ? R.drawable.divider_night : R.drawable.divider_light, null));
+
+        mDataList.addItemDecoration(dividerItemDecoration);
+
+        dataAdapter.notifyDataSetChanged();
+
+        mGraph.updateColors();
+
+        mGraphSeek.updateTheme();
+
+        mGraph.redrawGraphs(-1, true);
     }
 
     @Override
