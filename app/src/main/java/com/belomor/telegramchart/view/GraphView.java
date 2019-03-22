@@ -12,7 +12,6 @@ import android.widget.PopupWindow;
 import android.widget.TextSwitcher;
 import android.widget.TextView;
 
-import com.belomor.telegramchart.BelomorUtil;
 import com.belomor.telegramchart.GlobalManager;
 import com.belomor.telegramchart.GraphTouchListener;
 import com.belomor.telegramchart.ItemDivider;
@@ -39,7 +38,7 @@ import butterknife.ButterKnife;
 public class GraphView extends FrameLayout implements GraphTouchListener {
 
     @BindView(R.id.graph_component)
-    GraphView2 mGraph;
+    GraphComponent mGraph;
 
     @BindView(R.id.graph_seek)
     GraphSeek mGraphSeek;

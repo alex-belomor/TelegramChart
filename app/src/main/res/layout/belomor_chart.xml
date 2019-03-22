@@ -96,7 +96,7 @@
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toBottomOf="@id/graph_seek" />
 
-    <com.belomor.telegramchart.view.GraphView2
+    <com.belomor.telegramchart.view.GraphComponent
         android:id="@+id/graph_component"
         android:layout_width="0dp"
         android:layout_height="@dimen/chart_height"

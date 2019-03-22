@@ -27,7 +27,7 @@ import java.util.Date;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 
-public class GraphView2 extends TextureView implements TextureView.SurfaceTextureListener, Runnable {
+public class GraphComponent extends TextureView implements TextureView.SurfaceTextureListener, Runnable {
 
     private ModelChart data;
 
@@ -88,7 +88,7 @@ public class GraphView2 extends TextureView implements TextureView.SurfaceTextur
     private boolean threadRunning;
 
 
-    public GraphView2(Context context, @Nullable AttributeSet attrs) {
+    public GraphComponent(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
 
         setOpaque(false);
