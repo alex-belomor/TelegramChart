@@ -56,7 +56,7 @@ public class GraphView extends FrameLayout implements GraphTouchListener {
     @BindViews({R.id.ts_5, R.id.ts_4, R.id.ts_3, R.id.ts_2, R.id.ts_1, R.id.ts_0})
     List<TextSwitcher> mTextViewSwitcher;
 
-    ArrayList<TextView> valuesTextViewList = new ArrayList<>();
+    ArrayList<View> valuesTextViewList = new ArrayList<>();
 
     ItemDivider dividerItemDecoration;
 
@@ -109,17 +109,17 @@ public class GraphView extends FrameLayout implements GraphTouchListener {
         popUpView = LayoutInflater.from(getContext()).inflate(R.layout.popup_data,
                 null);
 
-//        mContainer = popUpView.findViewById(R.id.texts_container);
+        mContainer = popUpView.findViewById(R.id.texts_container);
         popupParent = popUpView.findViewById(R.id.parent);
         popupDate = popUpView.findViewById(R.id.date);
 
-//        for (int i = 1; i < data.getColumns().size(); i++) {
-//            TextView textView = new TextView(getContext());
-//            textView.setId(View.generateViewId());
-//            textView.setTextColor(Color.parseColor(data.getColor().getColorByPos(i - 1)));
-//            mContainer.addView(textView);
-//            valuesTextViewList.add(textView);
-//        }
+        for (int i = 1; i < data.getColumns().size(); i++) {
+            View view = LayoutInflater.from(getContext()).inflate(R.layout.popup_data_item, null, false);
+            ((TextView) view.findViewById(R.id.count)).setTextColor(Color.parseColor(data.getColor().getColorByPos(i - 1)));
+            ((TextView) view.findViewById(R.id.name)).setTextColor(Color.parseColor(data.getColor().getColorByPos(i - 1)));
+            mContainer.addView(view);
+            valuesTextViewList.add(view);
+        }
 
         mPopup = new PopupWindow(popUpView, LayoutParams.WRAP_CONTENT,
                 LayoutParams.WRAP_CONTENT, false);
@@ -133,14 +133,16 @@ public class GraphView extends FrameLayout implements GraphTouchListener {
         String text = simple.format(result);
         popupDate.setText(text);
 
-//        for (int i = 1; i < data.getColumns().size(); i++) {
-//            if (data.getColumns().get(i).show) {
-//                valuesTextViewList.get(i - 1).setVisibility(VISIBLE);
-//                valuesTextViewList.get(i - 1).setText(data.getColumnInt(i, pos));
-//            } else {
-//                valuesTextViewList.get(i - 1).setVisibility(GONE);
-//            }
-//        }
+        for (int i = 1; i < data.getColumns().size(); i++) {
+            if (data.getColumns().get(i).show) {
+                valuesTextViewList.get(i - 1).setVisibility(VISIBLE);
+                ((TextView) valuesTextViewList.get(i - 1).findViewById(R.id.count)).setText(String.valueOf(data.getColumnInt(i, pos)));
+                String name = data.getColumnName(i);
+                ((TextView) valuesTextViewList.get(i - 1).findViewById(R.id.name)).setText(name);
+            } else {
+                valuesTextViewList.get(i - 1).setVisibility(GONE);
+            }
+        }
 
         if (mPopup.isShowing())
             mPopup.update((int) x, (int) y, LayoutParams.WRAP_CONTENT,
