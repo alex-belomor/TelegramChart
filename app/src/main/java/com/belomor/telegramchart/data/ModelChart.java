@@ -21,15 +21,11 @@ public class ModelChart implements Serializable {
     private ChartColor color;
 
     public int getColumnInt(int posColumn, int pos) {
-        return ((Double) columns.get(posColumn).get(pos + 1)).intValue();
+        return ((Double) columns.get(posColumn).get(pos)).intValue();
     }
 
     public long getColumnLong(int posColumn, int pos) {
-        return ((Double) columns.get(posColumn).get(pos + 1)).longValue();
-    }
-
-    public int getColumnSize(int posColumn) {
-        return columns.get(posColumn).size() - 1;
+        return ((Double) columns.get(posColumn).get(pos)).longValue();
     }
 
     public String getColumnName(int posColumn) {

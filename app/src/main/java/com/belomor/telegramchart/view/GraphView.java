@@ -128,7 +128,7 @@ public class GraphView extends FrameLayout implements GraphTouchListener {
 
     private void showPopup(int pos, float x, float y) {
         DateFormat simple = new SimpleDateFormat("E, MMM dd");
-        long date = data.getColumnLong(0, pos);
+        long date = data.getColumnLong(0, pos + 1);
         Date result = new Date(date);
         String text = simple.format(result);
         popupDate.setText(text);
@@ -136,7 +136,7 @@ public class GraphView extends FrameLayout implements GraphTouchListener {
         for (int i = 1; i < data.getColumns().size(); i++) {
             if (data.getColumns().get(i).show) {
                 valuesTextViewList.get(i - 1).setVisibility(VISIBLE);
-                ((TextView) valuesTextViewList.get(i - 1).findViewById(R.id.count)).setText(String.valueOf(data.getColumnInt(i, pos)));
+                ((TextView) valuesTextViewList.get(i - 1).findViewById(R.id.count)).setText(String.valueOf(data.getColumnInt(i, pos + 1)));
                 String name = data.getColumnName(i);
                 ((TextView) valuesTextViewList.get(i - 1).findViewById(R.id.name)).setText(name);
             } else {
@@ -172,7 +172,7 @@ public class GraphView extends FrameLayout implements GraphTouchListener {
 
     public void setData(ModelChart chartList, int maxFollowers) {
         start = 0;
-        end = chartList.getColumns().size() - 3;
+        end = chartList.getColumns().size() - 1;
         this.data = chartList;
 
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getContext());

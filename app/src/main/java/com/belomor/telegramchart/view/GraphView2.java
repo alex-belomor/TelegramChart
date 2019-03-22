@@ -83,8 +83,6 @@ public class GraphView2 extends TextureView implements TextureView.SurfaceTextur
 
     private boolean touched = false;
 
-    private boolean savedBeforeTouch = false;
-
     private float startY;
 
     private boolean threadRunning;
@@ -148,7 +146,7 @@ public class GraphView2 extends TextureView implements TextureView.SurfaceTextur
     public void setChartData(ModelChart data, int start, int end) {
         if (!animation) {
             startDraw = true;
-            end = end == 0 ? data.getColumnSize(0) : end;
+            end = end == 0 ? data.getColumns().get(0).size() - 1 : end;
             this.data = data;
             this.start = start;
             this.end = end;
@@ -156,7 +154,7 @@ public class GraphView2 extends TextureView implements TextureView.SurfaceTextur
     }
 
     public void rangeChart(int start, int end, float widthPerSize, float offsetX) {
-        end = end == 0 ? data.getColumnSize(0) : end;
+        end = end == 0 ? data.getColumns().get(0).size() - 1 : end;
         this.start = start;
         this.end = end;
         this.widthPerSize = widthPerSize;
@@ -204,6 +202,8 @@ public class GraphView2 extends TextureView implements TextureView.SurfaceTextur
     }
 
     private void drawData(Canvas canvas, ModelChart modelChart) {
+        block = true;
+
         float newHeightPerUser = 0f;
         int maxValue = 0;
 
@@ -245,9 +245,9 @@ public class GraphView2 extends TextureView implements TextureView.SurfaceTextur
                 paint.setColor(Color.parseColor(color));
                 paint.setAlpha(255);
 
-                path.moveTo(latestX, startY + modelChart.getColumnInt(i, 0) * heightPerUser);
+                path.moveTo(latestX, startY + modelChart.getColumnInt(i, 1) * heightPerUser);
 
-                for (int j = 1; j < modelChart.getColumnSize(0); j++) {
+                for (int j = 2; j < modelChart.getColumns().get(0).size(); j++) {
                     path.lineTo(latestX + widthPerSize, startY + modelChart.getColumnInt(i, j) * heightPerUser);
                     latestX = latestX + widthPerSize;
                 }
@@ -258,6 +258,8 @@ public class GraphView2 extends TextureView implements TextureView.SurfaceTextur
 
         drawDates(canvas, modelChart);
         drawValues(canvas, modelChart);
+
+        block = false;
 
         startDraw = false;
     }
@@ -361,12 +363,19 @@ public class GraphView2 extends TextureView implements TextureView.SurfaceTextur
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
+        Log.d("TEST_TOUCH", event.getAction() + "");
         if (event.getAction() == MotionEvent.ACTION_DOWN)
             touched = true;
         else if (event.getAction() == MotionEvent.ACTION_UP ||
                 event.getAction() == MotionEvent.ACTION_CANCEL) {
-            savedBeforeTouch = false;
             touched = false;
+            block = false;
+            //TODO need to change this hot fix to better solution
+            try {
+                Thread.sleep(16);
+            }catch (Exception e) {
+
+            }
             graphTouchListener.onStopTouch();
             startDraw = true;
             return true;
@@ -378,11 +387,6 @@ public class GraphView2 extends TextureView implements TextureView.SurfaceTextur
             touchX = width - 1;
         else
             touchX = event.getX();
-
-//        int pos = (int) ((Math.abs(offsetX)  + event.getX()) / widthPerSize);
-//        for (int i = 1; i < data.getColumns().size(); i++) {
-//            Log.d("TEST_POS", data.getColumnInt(i, pos) + "");
-//        }
         return true;
     }
 
@@ -439,9 +443,9 @@ public class GraphView2 extends TextureView implements TextureView.SurfaceTextur
                 if (i == redrawPos && redrawGraph && changeHeightMultiplier > 0 && changeHeightMultiplier <= 1f)
                     paint.setAlpha((int) (255 * changeHeightMultiplier));
 
-                path.moveTo(latestX, startY + modelChart.getColumnInt(i, 0) * newHeightPerUser);
+                path.moveTo(latestX, startY + modelChart.getColumnInt(i, 1) * newHeightPerUser);
 
-                for (int j = 1; j < modelChart.getColumnSize(0); j++) {
+                for (int j = 2; j < modelChart.getColumns().get(0).size(); j++) {
                     path.lineTo(latestX + widthPerSize, startY + modelChart.getColumnInt(i, j) * newHeightPerUser);
                     latestX = latestX + widthPerSize;
                 }
@@ -457,9 +461,9 @@ public class GraphView2 extends TextureView implements TextureView.SurfaceTextur
 
                 paint.setAlpha(alpha);
 
-                path.moveTo(latestX, startY + modelChart.getColumnInt(redrawPos, 0) * newHeightPerUser);
+                path.moveTo(latestX, startY + modelChart.getColumnInt(redrawPos, 1) * newHeightPerUser);
 
-                for (int j = 1; j < modelChart.getColumnSize(0); j++) {
+                for (int j = 2; j < modelChart.getColumns().get(0).size(); j++) {
                     path.lineTo(latestX + widthPerSize, startY + modelChart.getColumnInt(redrawPos, j) * newHeightPerUser);
                     latestX = latestX + widthPerSize;
                 }
@@ -476,9 +480,14 @@ public class GraphView2 extends TextureView implements TextureView.SurfaceTextur
     }
 
     private void drawVertLine(Canvas canvas, ModelChart data) {
-        drawData(canvas, data);
+        if (!touched)
+            return;
+
+        block = true;
 
         canvas.drawLine(touchX, startY, touchX, height + startY, paintVertLine);
+
+        drawData(canvas, data);
 
         int pos = (int) ((Math.abs(offsetX) + touchX + widthPerSize / 2) / widthPerSize);
 
@@ -486,7 +495,7 @@ public class GraphView2 extends TextureView implements TextureView.SurfaceTextur
 
         for (int i = 1; i < data.getColumns().size(); i++) {
             if (data.getColumns().get(i).show) {
-                int value = data.getColumnInt(i, pos);
+                int value = data.getColumnInt(i, pos + 1);
 
                 if (highValue < value * heightPerUser + startY) {
                     highValue = value * heightPerUser + startY;
@@ -501,13 +510,14 @@ public class GraphView2 extends TextureView implements TextureView.SurfaceTextur
                 paintCircle.setStrokeWidth(6f);
                 canvas.drawCircle(offsetX + widthPerSize * pos, value * heightPerUser + startY, 16 - (2f / 2), paintCircle);
 
-                Log.d("TEST_POS", data.getColumnInt(i, pos) + "");
             }
         }
 
         if (graphTouchListener != null) {
-            graphTouchListener.onTouch(pos, touchX, BelomorUtil.getDpInPx(112, getContext()));
+            graphTouchListener.onTouch(pos, touchX, BelomorUtil.getDpInPx(58, getContext()));
         }
+
+        block = false;
     }
 
     public void setGraphTouchListener(GraphTouchListener graphTouchListener) {
@@ -539,9 +549,7 @@ public class GraphView2 extends TextureView implements TextureView.SurfaceTextur
 
     @Override
     public void run() {
-
         while (threadRunning) {
-//            try {
             if (startDraw || touched) {
                 if (!block) {
                     long start = System.currentTimeMillis();
@@ -593,9 +601,6 @@ public class GraphView2 extends TextureView implements TextureView.SurfaceTextur
                     }
                 }
             }
-//            } catch (Exception e) {
-//                Log.e("GraphView2", e.toString());
-//            }
         }
     }
 }

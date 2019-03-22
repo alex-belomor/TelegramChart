@@ -34,12 +34,8 @@ public class Column extends ArrayList {
         return maxValue;
     }
 
-    public int getCountValues() {
-        return size() - 1;
-    }
-
     @Override
     public int size() {
-        return super.size() - 1;
+        return super.size();
     }
 }

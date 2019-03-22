@@ -59,11 +59,6 @@ public class SeekView extends View {
         requestLayout();
     }
 
-    public void setMultiplier(float multiplier) {
-        this.multiplier = multiplier;
-        invalidate();
-    }
-
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
@@ -127,9 +122,9 @@ public class SeekView extends View {
                 paint.setAlpha(255);
 
                 Path p = new Path();
-                p.moveTo(0f, modelChart.getColumnInt(i, 0) * newHeightPerUser);
+                p.moveTo(0f, modelChart.getColumnInt(i, 1) * newHeightPerUser);
 
-                for (int j = 1; j < (modelChart.getColumns().get(0).getCountValues()); j++) {
+                for (int j = 2; j < (modelChart.getColumns().get(0).size()); j++) {
                     p.lineTo(latestX + widthPerSize, modelChart.getColumnInt(i, j) * newHeightPerUser);
                     latestX = latestX + widthPerSize;
                 }
@@ -148,9 +143,9 @@ public class SeekView extends View {
             paint.setAlpha((int) (redrawShow ? 255 * changeHeightMultiplier : 255 - 255 * changeHeightMultiplier));
 
             Path p = new Path();
-            p.moveTo(0f, modelChart.getColumnInt(redrawPos, 0) * newHeightPerUser);
+            p.moveTo(0f, modelChart.getColumnInt(redrawPos, 1) * newHeightPerUser);
 
-            for (int j = 1; j < (modelChart.getColumns().get(0).getCountValues()); j++) {
+            for (int j = 2; j < (modelChart.getColumns().get(0).size()); j++) {
                 p.lineTo(latestX + widthPerSize, modelChart.getColumnInt(redrawPos, j) * newHeightPerUser);
                 latestX = latestX + widthPerSize;
             }
@@ -183,9 +178,9 @@ public class SeekView extends View {
             paint.setStyle(Paint.Style.STROKE);
 
             Path p = new Path();
-            p.moveTo(0f, modelChart.getColumnInt(i, 0));
+            p.moveTo(0f, modelChart.getColumnInt(i, 1));
 
-            for (int j = 1; j < modelChart.getColumnSize(i); j++) {
+            for (int j = 2; j < modelChart.getColumns().get(0).size(); j++) {
                 p.lineTo(latestX + (widthPerSize), modelChart.getColumnInt(i, j) * heightPerUser);
                 latestX = latestX + (widthPerSize);
             }
@@ -199,6 +194,6 @@ public class SeekView extends View {
     }
 
     private int getItemsCount() {
-        return data.getColumns().get(0).getCountValues() - 1;
+        return data.getColumns().get(0).size() - 2;
     }
 }
