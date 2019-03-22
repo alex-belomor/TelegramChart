@@ -552,6 +552,7 @@ public class GraphView2 extends TextureView implements TextureView.SurfaceTextur
         while (threadRunning) {
             if (startDraw || touched) {
                 if (!block) {
+                    long startFrame = System.currentTimeMillis();
                     long start = System.currentTimeMillis();
                     long ended = 0;
 
@@ -594,8 +595,12 @@ public class GraphView2 extends TextureView implements TextureView.SurfaceTextur
                         Log.w("CANVAS_POST", ended + "ms");
                     }
 
+                    long finalFrameMs = System.currentTimeMillis() - startFrame;
+
+                    long msDelay = finalFrameMs > 10 ? 1 : 10 - finalFrameMs;
+
                     try {
-                        Thread.sleep(1);
+                        Thread.sleep(msDelay);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
