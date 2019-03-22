@@ -14,7 +14,9 @@ import android.view.MotionEvent;
 import android.view.Surface;
 import android.view.TextureView;
 
+import com.belomor.telegramchart.BelomorUtil;
 import com.belomor.telegramchart.GlobalManager;
+import com.belomor.telegramchart.GraphTouchListener;
 import com.belomor.telegramchart.R;
 import com.belomor.telegramchart.data.ModelChart;
 
@@ -54,14 +56,14 @@ public class GraphView2 extends TextureView implements TextureView.SurfaceTextur
 
     private boolean block;
 
-    Paint clearPaint = new Paint();
+    private Paint clearPaint = new Paint();
 
     private float offsetX;
 
     private int redrawPos = -1;
     private boolean redrawGraph = false;
 
-    Path path = new Path();
+    private Path path = new Path();
 
     private int start, end;
 
@@ -72,6 +74,8 @@ public class GraphView2 extends TextureView implements TextureView.SurfaceTextur
     private Paint paintVertLine;
 
     private Paint paintCircle;
+
+    private GraphTouchListener graphTouchListener;
 
     private int maxValue = 0;
 
@@ -137,7 +141,7 @@ public class GraphView2 extends TextureView implements TextureView.SurfaceTextur
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
 
-        height = MeasureSpec.getSize(heightMeasureSpec) - (int) startY;
+        height = MeasureSpec.getSize(heightMeasureSpec) - (int) startY - (int) BelomorUtil.getDpInPx(20, getContext());
         width = MeasureSpec.getSize(widthMeasureSpec);
     }
 
@@ -363,11 +367,17 @@ public class GraphView2 extends TextureView implements TextureView.SurfaceTextur
                 event.getAction() == MotionEvent.ACTION_CANCEL) {
             savedBeforeTouch = false;
             touched = false;
+            graphTouchListener.onStopTouch();
             startDraw = true;
             return true;
         }
 
-        touchX = event.getX();
+        if (event.getX() < 1)
+            touchX = 1;
+        else if (event.getX() > width - 1)
+            touchX = width - 1;
+        else
+            touchX = event.getX();
 
 //        int pos = (int) ((Math.abs(offsetX)  + event.getX()) / widthPerSize);
 //        for (int i = 1; i < data.getColumns().size(); i++) {
@@ -472,24 +482,36 @@ public class GraphView2 extends TextureView implements TextureView.SurfaceTextur
 
         int pos = (int) ((Math.abs(offsetX) + touchX + widthPerSize / 2) / widthPerSize);
 
+        float highValue = 0;
+
         for (int i = 1; i < data.getColumns().size(); i++) {
             if (data.getColumns().get(i).show) {
                 int value = data.getColumnInt(i, pos);
 
+                if (highValue < value * heightPerUser + startY) {
+                    highValue = value * heightPerUser + startY;
+                }
+
                 paintCircle.setColor(ContextCompat.getColor(getContext(), GlobalManager.nightMode ? R.color.chart_background_dark : R.color.chart_background_light));
                 paintCircle.setStyle(Paint.Style.FILL);
-                canvas.drawCircle(offsetX + widthPerSize * pos, value * heightPerUser + startY, 20, paintCircle);
+                canvas.drawCircle(offsetX + widthPerSize * pos, value * heightPerUser + startY, 16, paintCircle);
 
                 paintCircle.setColor(Color.parseColor(data.getColor().getColorByPos(i - 1)));
                 paintCircle.setStyle(Paint.Style.STROKE);
                 paintCircle.setStrokeWidth(6f);
-                canvas.drawCircle(offsetX + widthPerSize * pos, value * heightPerUser + startY, 20 - (2f / 2), paintCircle);
+                canvas.drawCircle(offsetX + widthPerSize * pos, value * heightPerUser + startY, 16 - (2f / 2), paintCircle);
 
                 Log.d("TEST_POS", data.getColumnInt(i, pos) + "");
             }
         }
 
+        if (graphTouchListener != null) {
+            graphTouchListener.onTouch(pos, touchX, BelomorUtil.getDpInPx(112, getContext()));
+        }
+    }
 
+    public void setGraphTouchListener(GraphTouchListener graphTouchListener) {
+        this.graphTouchListener = graphTouchListener;
     }
 
     @Override

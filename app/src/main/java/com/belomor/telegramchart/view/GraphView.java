@@ -1,22 +1,30 @@
 package com.belomor.telegramchart.view;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.util.AttributeSet;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.FrameLayout;
+import android.widget.LinearLayout;
+import android.widget.PopupWindow;
 import android.widget.TextSwitcher;
 import android.widget.TextView;
 
 import com.belomor.telegramchart.BelomorUtil;
 import com.belomor.telegramchart.GlobalManager;
+import com.belomor.telegramchart.GraphTouchListener;
 import com.belomor.telegramchart.ItemDivider;
 import com.belomor.telegramchart.R;
 import com.belomor.telegramchart.SeekListener;
 import com.belomor.telegramchart.adapter.DataAdapter;
 import com.belomor.telegramchart.data.ModelChart;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import androidx.annotation.NonNull;
@@ -28,7 +36,7 @@ import butterknife.BindView;
 import butterknife.BindViews;
 import butterknife.ButterKnife;
 
-public class GraphView extends FrameLayout implements TextSwitcher.ViewFactory {
+public class GraphView extends FrameLayout implements GraphTouchListener {
 
     @BindView(R.id.graph_component)
     GraphView2 mGraph;
@@ -39,16 +47,28 @@ public class GraphView extends FrameLayout implements TextSwitcher.ViewFactory {
     @BindView(R.id.data_list)
     RecyclerView mDataList;
 
+    View popupParent;
+
+    TextView popupDate;
+
+    PopupWindow mPopup;
+
     @BindViews({R.id.ts_5, R.id.ts_4, R.id.ts_3, R.id.ts_2, R.id.ts_1, R.id.ts_0})
     List<TextSwitcher> mTextViewSwitcher;
 
+    ArrayList<TextView> valuesTextViewList = new ArrayList<>();
+
     ItemDivider dividerItemDecoration;
+
+    LinearLayout mContainer;
 
     private ModelChart data;
 
     private int maxValue = 0;
 
     DataAdapter dataAdapter;
+
+    View popUpView;
 
     int start, end;
 
@@ -59,9 +79,7 @@ public class GraphView extends FrameLayout implements TextSwitcher.ViewFactory {
 
         ButterKnife.bind(this, view);
 
-        for (TextSwitcher textSwitcher : mTextViewSwitcher) {
-            textSwitcher.setFactory(this);
-        }
+        mGraph.setGraphTouchListener(this);
 
         mGraphSeek.setOnSeekListener(new SeekListener() {
             @Override
@@ -85,6 +103,54 @@ public class GraphView extends FrameLayout implements TextSwitcher.ViewFactory {
                 mGraph.rangeChart(start, end, widthPerItem, startOffset);
             }
         });
+    }
+
+    private void createPopup() {
+        popUpView = LayoutInflater.from(getContext()).inflate(R.layout.popup_data,
+                null);
+
+//        mContainer = popUpView.findViewById(R.id.texts_container);
+        popupParent = popUpView.findViewById(R.id.parent);
+        popupDate = popUpView.findViewById(R.id.date);
+
+//        for (int i = 1; i < data.getColumns().size(); i++) {
+//            TextView textView = new TextView(getContext());
+//            textView.setId(View.generateViewId());
+//            textView.setTextColor(Color.parseColor(data.getColor().getColorByPos(i - 1)));
+//            mContainer.addView(textView);
+//            valuesTextViewList.add(textView);
+//        }
+
+        mPopup = new PopupWindow(popUpView, LayoutParams.WRAP_CONTENT,
+                LayoutParams.WRAP_CONTENT, false);
+        mPopup.setAnimationStyle(android.R.style.Animation_Dialog);
+    }
+
+    private void showPopup(int pos, float x, float y) {
+        DateFormat simple = new SimpleDateFormat("E, MMM dd");
+        long date = data.getColumnLong(0, pos);
+        Date result = new Date(date);
+        String text = simple.format(result);
+        popupDate.setText(text);
+
+//        for (int i = 1; i < data.getColumns().size(); i++) {
+//            if (data.getColumns().get(i).show) {
+//                valuesTextViewList.get(i - 1).setVisibility(VISIBLE);
+//                valuesTextViewList.get(i - 1).setText(data.getColumnInt(i, pos));
+//            } else {
+//                valuesTextViewList.get(i - 1).setVisibility(GONE);
+//            }
+//        }
+
+        if (mPopup.isShowing())
+            mPopup.update((int) x, (int) y, LayoutParams.WRAP_CONTENT,
+                    LayoutParams.WRAP_CONTENT);
+        else
+            mPopup.showAtLocation(popUpView, Gravity.NO_GRAVITY, (int) x, (int) y);
+    }
+
+    private void dismissPopup() {
+        mPopup.dismiss();
     }
 
     public void calculateMaxValue() {
@@ -125,6 +191,8 @@ public class GraphView extends FrameLayout implements TextSwitcher.ViewFactory {
         dataAdapter.setColumnsData(chartList);
         mDataList.setAdapter(dataAdapter);
         calculateMaxValue();
+
+        createPopup();
     }
 
     public void updateTheme() {
@@ -140,17 +208,25 @@ public class GraphView extends FrameLayout implements TextSwitcher.ViewFactory {
 
         mGraph.updateColors();
 
+        popupParent.setBackgroundResource(GlobalManager.nightMode ? R.drawable.popup_background_dark : R.drawable.popup_background_light);
+
+        popupDate.setTextColor(ContextCompat.getColor(getContext(), GlobalManager.nightMode ? R.color.white : R.color.black));
+
+
         mGraphSeek.updateTheme();
 
         mGraph.redrawGraphs(-1, true);
     }
 
     @Override
-    public View makeView() {
-        TextView textView = new TextView(getContext());
-        textView.setGravity(Gravity.LEFT | Gravity.CENTER_VERTICAL);
-        textView.setTextSize(BelomorUtil.getSpInPx(5f, getContext()));
-        textView.setTextColor(ContextCompat.getColor(getContext(), R.color.graph_text_color));
-        return textView;
+    public void onTouch(int pos, float x, float y) {
+        post(() -> showPopup(pos, x, y));
+    }
+
+    @Override
+    public void onStopTouch() {
+        post(() -> {
+            dismissPopup();
+        });
     }
 }

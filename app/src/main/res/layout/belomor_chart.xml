@@ -4,16 +4,15 @@
     android:id="@+id/chart_parent"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:orientation="vertical"
     android:paddingLeft="18dp"
-    android:paddingRight="18dp"
-    android:orientation="vertical">
+    android:paddingRight="18dp">
 
     <TextView
         android:id="@+id/title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:paddingTop="20dp"
-        android:paddingBottom="20dp"
         android:text="@string/followers"
         android:textColor="?android:colorAccent"
         android:textSize="@dimen/text_medium"
@@ -105,6 +104,5 @@
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toBottomOf="@id/title" />
-
 
 </androidx.constraintlayout.widget.ConstraintLayout>
