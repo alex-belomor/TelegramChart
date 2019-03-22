@@ -72,14 +72,10 @@ public class StartActivity extends AppCompatActivity implements ItemAdapter.OnIt
                 chartArray = gson.fromJson(jsonObject.toString(), type);
                 itemAdapter = new ItemAdapter(chartArray,StartActivity.this);
                 mChartsList.setAdapter(itemAdapter);
-                Log.d("TEST", "TEST");
             } catch (JSONException e) {
-                e.printStackTrace();
             }
         } catch (Exception e) {
-            Log.e("TEST", e.toString());
         }
-
     }
 
     @Override

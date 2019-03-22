@@ -28,10 +28,7 @@ public class MainActivity extends AppCompatActivity {
 
     private ModelChart chart;
 
-    private int maxFollowers;
-
     Unbinder unbinder;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

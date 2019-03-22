@@ -79,8 +79,6 @@ public class GraphSeek extends FrameLayout {
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
-
-//        height = MeasureSpec.getSize(heightMeasureSpec);
         width = MeasureSpec.getSize(widthMeasureSpec);
         maxZoomWidth = width / 100 * 85;
 
@@ -152,13 +150,10 @@ public class GraphSeek extends FrameLayout {
                 break;
         }
 
-
         zoom = getZoom();
 
         int change = (int) ((width - finalMarginTo) / widthPerItem);
         seekListener.onRightChange(change, -getOffsetX(), zoom, getNewWidthPerItem());
-
-//        invalidate();
         return false;
     }
 
@@ -199,8 +194,6 @@ public class GraphSeek extends FrameLayout {
 
         int change = (int) (finalMarginFrom / widthPerItem);
         seekListener.onLeftChange(change, -getOffsetX(), zoom, getNewWidthPerItem());
-
-//        invalidate();
         return false;
     }
 
@@ -255,8 +248,6 @@ public class GraphSeek extends FrameLayout {
         zoom = getZoom();
 
         seekListener.onSeek(changeFrom, changeTo, -getOffsetX(), finalMarginTo * zoom, zoom, getNewWidthPerItem());
-
-//        invalidate();
         return false;
     }
 

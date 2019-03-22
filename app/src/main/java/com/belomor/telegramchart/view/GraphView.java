@@ -84,11 +84,6 @@ public class GraphView extends FrameLayout implements TextSwitcher.ViewFactory {
                 GraphView.this.end = end;
                 mGraph.rangeChart(start, end, widthPerItem, startOffset);
             }
-
-            @Override
-            public void onZoom(float zoom, float startOffset, float endOffset) {
-
-            }
         });
     }
 

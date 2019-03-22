@@ -20,7 +20,6 @@ import com.belomor.telegramchart.data.ModelChart;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
 
 import androidx.annotation.Nullable;
@@ -49,17 +48,9 @@ public class GraphView2 extends TextureView implements TextureView.SurfaceTextur
 
     private boolean animation = false;
 
-    private boolean smoothMove = false;
-
     private boolean redrawShow = false;
 
-    ArrayList<Path> movesPathArray = new ArrayList<>();
-
-    private float smoothX = 0;
-
     private int height, width;
-
-    private boolean done;
 
     private boolean block;
 
@@ -67,20 +58,28 @@ public class GraphView2 extends TextureView implements TextureView.SurfaceTextur
 
     private float offsetX;
 
-    private boolean moveAnimation = false;
-
     private int redrawPos = -1;
     private boolean redrawGraph = false;
 
     Path path = new Path();
 
-    private int start, end, count;
+    private int start, end;
 
     private boolean increaseHeight = false;
 
     private Paint paintLine;
 
+    private Paint paintVertLine;
+
+    private Paint paintCircle;
+
     private int maxValue = 0;
+
+    private float touchX;
+
+    private boolean touched = false;
+
+    private boolean savedBeforeTouch = false;
 
     private float startY;
 
@@ -112,6 +111,13 @@ public class GraphView2 extends TextureView implements TextureView.SurfaceTextur
         paintLine.setAntiAlias(true);
         paintLine.setStyle(Paint.Style.STROKE);
 
+        paintCircle = new Paint(Paint.ANTI_ALIAS_FLAG);
+
+        paintVertLine = new Paint(Paint.ANTI_ALIAS_FLAG);
+        paintVertLine.setStrokeWidth(3.5f);
+        paintVertLine.setAntiAlias(true);
+        paintVertLine.setStyle(Paint.Style.STROKE);
+
         setRotationX(180);
 
         mThread = new Thread(this, "GraphView2");
@@ -124,6 +130,7 @@ public class GraphView2 extends TextureView implements TextureView.SurfaceTextur
     public void updateColors() {
         paintText.setColor(ContextCompat.getColor(getContext(), GlobalManager.nightMode ? R.color.chart_text_dark : R.color.chart_text_light));
         paintLine.setColor(ContextCompat.getColor(getContext(), GlobalManager.nightMode ? R.color.chart_line_dark : R.color.chart_line_light));
+        paintVertLine.setColor(ContextCompat.getColor(getContext(), GlobalManager.nightMode ? R.color.chart_line_dark : R.color.chart_line_light));
     }
 
     @Override
@@ -141,8 +148,6 @@ public class GraphView2 extends TextureView implements TextureView.SurfaceTextur
             this.data = data;
             this.start = start;
             this.end = end;
-            this.count = end - start;
-            done = false;
         }
     }
 
@@ -150,17 +155,9 @@ public class GraphView2 extends TextureView implements TextureView.SurfaceTextur
         end = end == 0 ? data.getColumnSize(0) : end;
         this.start = start;
         this.end = end;
-        this.count = end - start;
         this.widthPerSize = widthPerSize;
         this.offsetX = offsetX;
-        smoothMove = true;
         startDraw = true;
-        moveAnimation = true;
-    }
-
-    @Override
-    public boolean onTouchEvent(MotionEvent event) {
-        return super.onTouchEvent(event);
     }
 
     public void redrawGraphs(int pos, boolean show) {
@@ -168,7 +165,6 @@ public class GraphView2 extends TextureView implements TextureView.SurfaceTextur
         redrawPos = pos;
         animation = true;
         redrawShow = show;
-        done = false;
         startDraw = true;
     }
 
@@ -197,7 +193,6 @@ public class GraphView2 extends TextureView implements TextureView.SurfaceTextur
             maxGlobalValue = maxValue;
             redrawGraph = false;
             redrawPos = -1;
-            done = true;
             startDraw = false;
         }
 
@@ -332,7 +327,6 @@ public class GraphView2 extends TextureView implements TextureView.SurfaceTextur
         int itemsDate = modelChart.getColumns().get(0).size() - 1;
         DateFormat simple = new SimpleDateFormat("MMM dd");
 
-        float latestDateX = offsetX;
         int textSize = 35;
         canvas.save();
         paintText.setTextSize(textSize);
@@ -348,18 +342,40 @@ public class GraphView2 extends TextureView implements TextureView.SurfaceTextur
 
         paintText.setTextAlign(Paint.Align.CENTER);
 
-        for (int i = 0; i < itemsDate; i++) {
-            if (i % (itemsDate / (6 * denominator)) == 0) {
-                long date = data.getColumnLong(0, i );
-                Date result = new Date(date);
-                String text = simple.format(result);
-                canvas.drawText(text, offsetX + ((float) i * widthPerSize - (widthDate / 2f)), height - textSize + 15, paintText);
-                latestDateX += widthDate;
-            }
+        for (int i = 0; i < 6 * denominator; i++) {
+            float x = (viewPort) / (6 * denominator) * i + widthDate / 2;
+            int pos = (int) (x / widthPerSize);
+            if (pos > itemsDate)
+                pos = itemsDate;
+            long date = data.getColumnLong(0, pos);
+            Date result = new Date(date);
+            String text = simple.format(result);
+            canvas.drawText(text, offsetX + x, height - textSize + 15, paintText);
         }
-
         canvas.restore();
     }
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        if (event.getAction() == MotionEvent.ACTION_DOWN)
+            touched = true;
+        else if (event.getAction() == MotionEvent.ACTION_UP ||
+                event.getAction() == MotionEvent.ACTION_CANCEL) {
+            savedBeforeTouch = false;
+            touched = false;
+            startDraw = true;
+            return true;
+        }
+
+        touchX = event.getX();
+
+//        int pos = (int) ((Math.abs(offsetX)  + event.getX()) / widthPerSize);
+//        for (int i = 1; i < data.getColumns().size(); i++) {
+//            Log.d("TEST_POS", data.getColumnInt(i, pos) + "");
+//        }
+        return true;
+    }
+
 
     private void drawDataAnimate(Canvas canvas, ModelChart modelChart) {
         if (!animation)
@@ -449,6 +465,33 @@ public class GraphView2 extends TextureView implements TextureView.SurfaceTextur
         block = false;
     }
 
+    private void drawVertLine(Canvas canvas, ModelChart data) {
+        drawData(canvas, data);
+
+        canvas.drawLine(touchX, startY, touchX, height + startY, paintVertLine);
+
+        int pos = (int) ((Math.abs(offsetX) + touchX + widthPerSize / 2) / widthPerSize);
+
+        for (int i = 1; i < data.getColumns().size(); i++) {
+            if (data.getColumns().get(i).show) {
+                int value = data.getColumnInt(i, pos);
+
+                paintCircle.setColor(ContextCompat.getColor(getContext(), GlobalManager.nightMode ? R.color.chart_background_dark : R.color.chart_background_light));
+                paintCircle.setStyle(Paint.Style.FILL);
+                canvas.drawCircle(offsetX + widthPerSize * pos, value * heightPerUser + startY, 20, paintCircle);
+
+                paintCircle.setColor(Color.parseColor(data.getColor().getColorByPos(i - 1)));
+                paintCircle.setStyle(Paint.Style.STROKE);
+                paintCircle.setStrokeWidth(6f);
+                canvas.drawCircle(offsetX + widthPerSize * pos, value * heightPerUser + startY, 20 - (2f / 2), paintCircle);
+
+                Log.d("TEST_POS", data.getColumnInt(i, pos) + "");
+            }
+        }
+
+
+    }
+
     @Override
     public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
         mSurface = new Surface(surface);
@@ -476,67 +519,61 @@ public class GraphView2 extends TextureView implements TextureView.SurfaceTextur
     public void run() {
 
         while (threadRunning) {
-            try {
-                if (startDraw) {
-                    if (!block) {
-                        long start = System.currentTimeMillis();
-                        long ended = 0;
+//            try {
+            if (startDraw || touched) {
+                if (!block) {
+                    long start = System.currentTimeMillis();
+                    long ended = 0;
 
-                        Canvas canvas = mSurface.lockCanvas(null);
-                        Log.w("CANVAS_LOCK", (System.currentTimeMillis() - start) + "ms");
+                    Canvas canvas = mSurface.lockCanvas(null);
+                    Log.w("CANVAS_LOCK", (System.currentTimeMillis() - start) + "ms");
 
-                        start = System.currentTimeMillis();
-                        canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
-                        Log.w("CANVAS_BG", (System.currentTimeMillis() - start) + "ms");
+                    start = System.currentTimeMillis();
 
-                        start = System.currentTimeMillis();
-                        synchronized (mSurface) {
-                            if (data != null && height > 0 && width > 0 && end > 0) {
-                                if (!animation) {
-                                    drawData(canvas, data);
-                                } else {
-                                    drawDataAnimate(canvas, data);
-                                }
+                    Log.w("CANVAS_BG", (System.currentTimeMillis() - start) + "ms");
+
+                    start = System.currentTimeMillis();
+                    synchronized (mSurface) {
+                        if (data != null && height > 0 && width > 0 && end > 0) {
+                            canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
+                            if (touched) {
+                                drawVertLine(canvas, data);
+                            } else if (!animation) {
+                                drawData(canvas, data);
+                            } else {
+                                drawDataAnimate(canvas, data);
                             }
                         }
-
-                        ended = (System.currentTimeMillis() - start);
-                        if (ended > 16) {
-                            Log.e("CANVAS_PREPARING", ended + "ms");
-                        } else {
-                            Log.w("CANVAS_PREPARING", ended + "ms");
-                        }
-
-
-                        start = System.currentTimeMillis();
-                        Log.d("CANVAS_SIZE", "WIDTH = " + canvas.getWidth() + "; HEIGHT = " + canvas.getHeight() + "; CLIP_LEFT = " + canvas.getClipBounds().left);
-                        mSurface.unlockCanvasAndPost(canvas);
-                        ended = (System.currentTimeMillis() - start);
-                        if (ended > 16) {
-                            Log.e("CANVAS_POST", ended + "ms");
-                        } else {
-                            Log.w("CANVAS_POST", ended + "ms");
-                        }
-
-                        try {
-                            Thread.sleep(2);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                    } else {
-                        Log.d("TEST", "test");
-//                        try {
-//                            Thread.sleep(2);
-//                        } catch (InterruptedException e) {
-//                            e.printStackTrace();
-//                        }
                     }
-                } else {
-                    Log.d("TEST", "test");
+
+                    ended = (System.currentTimeMillis() - start);
+                    if (ended > 16) {
+                        Log.e("CANVAS_PREPARING", ended + "ms");
+                    } else {
+                        Log.w("CANVAS_PREPARING", ended + "ms");
+                    }
+
+
+                    start = System.currentTimeMillis();
+                    Log.d("CANVAS_SIZE", "WIDTH = " + canvas.getWidth() + "; HEIGHT = " + canvas.getHeight() + "; CLIP_LEFT = " + canvas.getClipBounds().left);
+                    mSurface.unlockCanvasAndPost(canvas);
+                    ended = (System.currentTimeMillis() - start);
+                    if (ended > 16) {
+                        Log.e("CANVAS_POST", ended + "ms");
+                    } else {
+                        Log.w("CANVAS_POST", ended + "ms");
+                    }
+
+                    try {
+                        Thread.sleep(1);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
                 }
-            } catch (Exception e) {
-                Log.e("GraphView2", e.toString());
             }
+//            } catch (Exception e) {
+//                Log.e("GraphView2", e.toString());
+//            }
         }
     }
 }
