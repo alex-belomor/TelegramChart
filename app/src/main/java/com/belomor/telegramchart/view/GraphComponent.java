@@ -8,6 +8,7 @@ import android.graphics.Path;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
 import android.graphics.SurfaceTexture;
+import android.util.ArrayMap;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.Surface;
@@ -21,6 +22,7 @@ import com.belomor.telegramchart.data.ModelChart;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
 
@@ -69,6 +71,9 @@ public class GraphComponent extends TextureView implements TextureView.SurfaceTe
 
     private boolean increaseHeight = false;
 
+    private int currentZoomLevel = 1;
+    private int latestZoomLevel = 1;
+
     private Paint paintLine;
 
     private Paint paintVertLine;
@@ -83,7 +88,17 @@ public class GraphComponent extends TextureView implements TextureView.SurfaceTe
 
     private boolean touched = false;
 
+    private boolean dateAnimation = false;
+
+    private int latestDenominator = 0;
+
+    private int currentDenominator = 0;
+
     private float startY;
+
+    private int xValuesCount;
+
+    private ArrayMap<Integer, ArrayList<Integer>> zoomLevelTransitions;
 
     private boolean threadRunning;
 
@@ -92,6 +107,8 @@ public class GraphComponent extends TextureView implements TextureView.SurfaceTe
         super(context, attrs);
 
         setOpaque(false);
+
+        zoomLevelTransitions = new ArrayMap<>();
 
         clearPaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.CLEAR));
 
@@ -141,6 +158,32 @@ public class GraphComponent extends TextureView implements TextureView.SurfaceTe
 
         height = MeasureSpec.getSize(heightMeasureSpec) - (int) startY - (int) BelomorUtil.getDpInPx(20, getContext());
         width = MeasureSpec.getSize(widthMeasureSpec);
+
+        if (width > 0) {
+            int zoom = 1;
+            while (zoom < 5) {
+                ArrayList<Integer> values = new ArrayList<>();
+                int denominator = calculateDenominator(zoom);
+                for (int i = 1; i < data.getColumns().get(0).size() - 1; i++) {
+                    if (i % denominator == 0) {
+                        values.add(i);
+                    }
+                }
+                zoomLevelTransitions.put(zoom, values);
+                zoom *= 2;
+            }
+        }
+    }
+
+    private int calculateDenominator(float zoom) {
+        float localWidthPerSize = (width * zoom) / (data.getColumns().get(0).size() - 2);
+        float itemWidth = width / 6f;
+        int denominator = 1;
+        int visibleItems = (int) ((float) width / localWidthPerSize);
+        while (itemWidth * (visibleItems / denominator) > width) {
+            denominator *= 2;
+        }
+        return denominator;
     }
 
     public void setChartData(ModelChart data, int start, int end) {
@@ -189,10 +232,12 @@ public class GraphComponent extends TextureView implements TextureView.SurfaceTe
         float returnedValue = heightPerUser + difference * changeHeightMultiplier;
         if (changeHeightMultiplier >= 1f) {
             animation = false;
+            dateAnimation = false;
             changeHeightMultiplier = 0f;
             heightPerUser += difference;
             this.maxValue = maxValue;
             maxGlobalValue = maxValue;
+            latestDenominator = currentDenominator;
             redrawGraph = false;
             redrawPos = -1;
             startDraw = false;
@@ -326,6 +371,8 @@ public class GraphComponent extends TextureView implements TextureView.SurfaceTe
     private final int TEXT_SIZE = 35;
     private final float APPROXIMATE_DATE_TEXT_WIDTH = TEXT_SIZE * 6;
 
+
+    //TODO NEEDED TO FIX THIS DIRTY AND BAD SOLUTION
     private void drawDates(Canvas canvas, ModelChart modelChart) {
         paintText.setAlpha(255);
 
@@ -338,17 +385,49 @@ public class GraphComponent extends TextureView implements TextureView.SurfaceTe
 
         canvas.scale(1f, -1f, (float) width / 2f, (float) height / 2f);
 
-        int denominator = calculateDenominator();
+        currentDenominator = calculateDenominator();
 
-        paintText.setTextAlign(Paint.Align.CENTER);
+        if (latestDenominator == 0)
+            latestDenominator = currentDenominator;
+
+        paintText.setTextAlign(Paint.Align.RIGHT);
 
         for (int i = 1; i <= itemsDate; i++) {
-            if (i % denominator == 0) {
-                int pos = i;
-                long date = data.getColumnLong(0, pos);
-                Date result = new Date(date);
-                String text = simple.format(result);
-                canvas.drawText(text, offsetX + widthPerSize * (pos - 1), height - TEXT_SIZE + 15, paintText);
+            if (currentDenominator == latestDenominator) {
+                if (i % currentDenominator == 0) {
+                    int pos = i - 2;
+                    long date = data.getColumnLong(0, pos);
+                    Date result = new Date(date);
+                    String text = simple.format(result);
+                    canvas.drawText(text, offsetX + widthPerSize * (i - 1), height - TEXT_SIZE + 15, paintText);
+                }
+            } else {
+                dateAnimation = true;
+                if (currentDenominator > latestDenominator) {
+                    if (i % currentDenominator == 0) {
+                        int pos = i - 2;
+                        long date = data.getColumnLong(0, pos);
+                        Date result = new Date(date);
+                        if (i % latestDenominator != 0)
+                            paintText.setAlpha((int) ((float) 255 * changeHeightMultiplier));
+                        else
+                            paintText.setAlpha(255);
+                        String text = simple.format(result);
+                        canvas.drawText(text, offsetX + widthPerSize * (i - 1), height - TEXT_SIZE + 15, paintText);
+                    }
+                } else {
+                    if (i % currentDenominator == 0) {
+                        int pos = i - 2;
+                        long date = data.getColumnLong(0, pos);
+                        Date result = new Date(date);
+                        if (i % latestDenominator == 0)
+                            paintText.setAlpha((int) ((float) 255 - (float) 255 * changeHeightMultiplier));
+                        else
+                            paintText.setAlpha(255);
+                        String text = simple.format(result);
+                        canvas.drawText(text, offsetX + widthPerSize * (i - 1), height - TEXT_SIZE + 15, paintText);
+                    }
+                }
             }
         }
         canvas.restore();
@@ -516,7 +595,7 @@ public class GraphComponent extends TextureView implements TextureView.SurfaceTe
         }
 
         if (graphTouchListener != null) {
-            int loc[]=new int[2];
+            int loc[] = new int[2];
             getLocationOnScreen(loc);
             graphTouchListener.onTouch(pos, touchX, loc[1] - BelomorUtil.getDpInPx(320, getContext()));
         }
@@ -566,8 +645,12 @@ public class GraphComponent extends TextureView implements TextureView.SurfaceTe
                                 drawVertLine(canvas, data);
                             } else if (!animation) {
                                 drawData(canvas, data);
-                            } else {
+                            }else {
                                 drawDataAnimate(canvas, data);
+                            }
+
+                            if (dateAnimation) {
+                                drawDates(canvas, data);
                             }
                         }
                     }
