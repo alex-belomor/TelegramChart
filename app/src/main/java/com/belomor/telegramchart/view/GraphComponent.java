@@ -23,6 +23,7 @@ import com.belomor.telegramchart.data.ModelChart;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Locale;
 
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
@@ -327,38 +328,57 @@ public class GraphComponent extends TextureView implements TextureView.SurfaceTe
         canvas.restore();
     }
 
+    private final int TEXT_SIZE = 35;
+    private final float APPROXIMATE_DATE_TEXT_WIDTH = TEXT_SIZE * 6;
+
     private void drawDates(Canvas canvas, ModelChart modelChart) {
         paintText.setAlpha(255);
 
         int itemsDate = modelChart.getColumns().get(0).size() - 1;
-        DateFormat simple = new SimpleDateFormat("MMM dd");
+        DateFormat simple = new SimpleDateFormat("MMM dd", Locale.ENGLISH);
 
-        int textSize = 35;
         canvas.save();
-        paintText.setTextSize(textSize);
+
+        paintText.setTextSize(TEXT_SIZE);
+
         canvas.scale(1f, -1f, (float) width / 2f, (float) height / 2f);
 
-        int denominator = 1;
 
         float viewPort = widthPerSize * (float) (itemsDate - 1);
 
-        denominator = (int) viewPort / (int) width;
 
-        float widthDate = viewPort / (6f * (float) denominator);
+        int denominator = calculateDenominator(viewPort);
+
+//        denominator = (int) viewPort / (int) width;
+
+        float widthDate = viewPort / denominator;
 
         paintText.setTextAlign(Paint.Align.CENTER);
 
-        for (int i = 0; i < 6 * denominator; i++) {
-            float x = (viewPort) / (6 * denominator) * i + widthDate / 2;
-            int pos = (int) (x / widthPerSize);
-            if (pos > itemsDate)
-                pos = itemsDate;
-            long date = data.getColumnLong(0, pos);
-            Date result = new Date(date);
-            String text = simple.format(result);
-            canvas.drawText(text, offsetX + x, height - textSize + 15, paintText);
+        int firstPos = -1;
+
+        for (int i = 1; i <= itemsDate; i++) {
+            if (i % denominator == 0) {
+                int pos = i;
+                if (pos > itemsDate)
+                    pos = itemsDate;
+                long date = data.getColumnLong(0, pos);
+                Date result = new Date(date);
+                String text = simple.format(result);
+                canvas.drawText(text, offsetX + (pos - 1) * widthPerSize - widthPerSize * 1.5f, height - TEXT_SIZE + 15, paintText);
+            }
         }
         canvas.restore();
+    }
+
+    private int calculateDenominator(float totalWidth) {
+        float itemWidth = width / 6f;
+        int denominator = 1;
+        int visibleItems = end - start;
+        while (itemWidth * (visibleItems / denominator) > width) {
+            denominator *= 2;
+        }
+        return denominator;
     }
 
     @Override
@@ -373,7 +393,7 @@ public class GraphComponent extends TextureView implements TextureView.SurfaceTe
             //TODO need to change this hot fix to better solution
             try {
                 Thread.sleep(16);
-            }catch (Exception e) {
+            } catch (Exception e) {
 
             }
             graphTouchListener.onStopTouch();
