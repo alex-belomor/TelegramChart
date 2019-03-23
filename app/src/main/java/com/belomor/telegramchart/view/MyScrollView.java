@@ -10,6 +10,8 @@ public class MyScrollView extends ScrollView {
 
     private float xDistance, yDistance, lastX, lastY;
 
+    private boolean looseTouch = false;
+
 
     public MyScrollView(Context context) {
         super(context);
@@ -43,10 +45,12 @@ public class MyScrollView extends ScrollView {
                 lastX = curX;
                 lastY = curY;
                 if(xDistance > yDistance)
-                    return false;
+                    looseTouch = true;
+                else if (xDistance < yDistance)
+                    looseTouch = false;
         }
 
-        return super.onInterceptTouchEvent(ev);
+        return super.onInterceptTouchEvent(ev) && !looseTouch;
     }
 
 }

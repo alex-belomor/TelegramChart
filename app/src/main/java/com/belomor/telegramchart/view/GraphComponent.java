@@ -9,7 +9,6 @@ import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
 import android.graphics.SurfaceTexture;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.Surface;
 import android.view.TextureView;
@@ -341,19 +340,15 @@ public class GraphComponent extends TextureView implements TextureView.SurfaceTe
 
         int denominator = calculateDenominator();
 
-        float widthDate = widthPerSize * (float) denominator;
-
         paintText.setTextAlign(Paint.Align.CENTER);
 
         for (int i = 1; i <= itemsDate; i++) {
             if (i % denominator == 0) {
                 int pos = i;
-                if (pos > itemsDate)
-                    pos = itemsDate;
                 long date = data.getColumnLong(0, pos);
                 Date result = new Date(date);
                 String text = simple.format(result);
-                canvas.drawText(text, (offsetX + widthPerSize * (pos - 1)), height - TEXT_SIZE + 15, paintText);
+                canvas.drawText(text, offsetX + widthPerSize * (pos - 1), height - TEXT_SIZE + 15, paintText);
             }
         }
         canvas.restore();
@@ -371,7 +366,6 @@ public class GraphComponent extends TextureView implements TextureView.SurfaceTe
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        Log.d("TEST_TOUCH", event.getAction() + "");
         if (event.getAction() == MotionEvent.ACTION_DOWN)
             touched = true;
         else if (event.getAction() == MotionEvent.ACTION_UP ||
@@ -561,17 +555,8 @@ public class GraphComponent extends TextureView implements TextureView.SurfaceTe
             if (startDraw || touched) {
                 if (!block) {
                     long startFrame = System.currentTimeMillis();
-                    long start = System.currentTimeMillis();
-                    long ended = 0;
 
                     Canvas canvas = mSurface.lockCanvas(null);
-                    Log.w("CANVAS_LOCK", (System.currentTimeMillis() - start) + "ms");
-
-                    start = System.currentTimeMillis();
-
-                    Log.w("CANVAS_BG", (System.currentTimeMillis() - start) + "ms");
-
-                    start = System.currentTimeMillis();
                     synchronized (mSurface) {
                         if (data != null && height > 0 && width > 0 && end > 0) {
                             canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
@@ -585,23 +570,7 @@ public class GraphComponent extends TextureView implements TextureView.SurfaceTe
                         }
                     }
 
-                    ended = (System.currentTimeMillis() - start);
-                    if (ended > 16) {
-                        Log.e("CANVAS_PREPARING", ended + "ms");
-                    } else {
-                        Log.w("CANVAS_PREPARING", ended + "ms");
-                    }
-
-
-                    start = System.currentTimeMillis();
-                    Log.d("CANVAS_SIZE", "WIDTH = " + canvas.getWidth() + "; HEIGHT = " + canvas.getHeight() + "; CLIP_LEFT = " + canvas.getClipBounds().left);
                     mSurface.unlockCanvasAndPost(canvas);
-                    ended = (System.currentTimeMillis() - start);
-                    if (ended > 16) {
-                        Log.e("CANVAS_POST", ended + "ms");
-                    } else {
-                        Log.w("CANVAS_POST", ended + "ms");
-                    }
 
                     long finalFrameMs = System.currentTimeMillis() - startFrame;
 
