@@ -26,6 +26,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -140,7 +141,7 @@ public class GraphView extends FrameLayout implements GraphTouchListener {
     }
 
     private void showPopup(int pos, float x, float y) {
-        DateFormat simple = new SimpleDateFormat("E, MMM dd");
+        DateFormat simple = new SimpleDateFormat("E, MMM dd", Locale.ENGLISH);
         long date = data.getColumnLong(0, pos + 1);
         Date result = new Date(date);
         String text = simple.format(result);
@@ -149,7 +150,7 @@ public class GraphView extends FrameLayout implements GraphTouchListener {
         for (int i = 1; i < data.getColumns().size(); i++) {
             if (data.getColumns().get(i).show) {
                 valuesTextViewList.get(i - 1).setVisibility(VISIBLE);
-                ((TextView) valuesTextViewList.get(i - 1).findViewById(R.id.count)).setText(String.valueOf(data.getColumnInt(i, pos + 1)));
+                ((TextView) valuesTextViewList.get(i - 1).findViewById(R.id.count)).setText(BelomorUtil.formatValue(data.getColumnInt(i, pos + 1)));
                 String name = data.getColumnName(i);
                 ((TextView) valuesTextViewList.get(i - 1).findViewById(R.id.name)).setText(name);
             } else {

@@ -109,7 +109,7 @@ public class GraphComponent extends TextureView implements TextureView.SurfaceTe
         startY = 65f;
 
         paintLine = new Paint(Paint.ANTI_ALIAS_FLAG);
-        paintLine.setStrokeWidth(3f);
+        paintLine.setStrokeWidth(2.5f);
         paintLine.setAntiAlias(true);
         paintLine.setStyle(Paint.Style.STROKE);
 
@@ -264,6 +264,8 @@ public class GraphComponent extends TextureView implements TextureView.SurfaceTe
         startDraw = false;
     }
 
+    private final int LINE_TRANSITION = 80;
+
     private void drawValues(Canvas canvas, ModelChart modelChart) {
 
         float newHeightPerUser = calculateAnimatedHeight(modelChart);
@@ -298,25 +300,34 @@ public class GraphComponent extends TextureView implements TextureView.SurfaceTe
 
             //showed lines
             paintText.setAlpha((int) (255 * changeHeightMultiplier));
-            float showStart = (!increaseHeight ? 128 : -128) - (!increaseHeight ? 128 : -128) * changeHeightMultiplier;
+            float showStart = (!increaseHeight ? LINE_TRANSITION : -LINE_TRANSITION) - (!increaseHeight ? LINE_TRANSITION : -LINE_TRANSITION) * changeHeightMultiplier;
             for (int i = 1; i < 6; i++) {
                 int value = (int) ((float) newCalculatedMaxValue / 5f * (float) i);
-                canvas.drawText(String.valueOf(value >= 0 ? value : 0), 0, height - startY - transitionY * i - 16 - showStart * i, paintText);
+                if (value < 0)
+                    value = 0;
+                String textValue = BelomorUtil.formatValue(value);
+                canvas.drawText(textValue, 0, height - startY - transitionY * i - 16 - showStart * i, paintText);
             }
 
             //hiding lines
             paintText.setAlpha(255 - (int) (255 * changeHeightMultiplier));
-            float hideStart = (increaseHeight ? 128 : -128) * changeHeightMultiplier;
+            float hideStart = (increaseHeight ? LINE_TRANSITION : -LINE_TRANSITION) * changeHeightMultiplier;
             for (int i = 1; i < 6; i++) {
                 int value = (int) ((float) calculatedMaxValue / 5f * (float) i);
-                canvas.drawText(String.valueOf(value >= 0 ? value : 0), 0, height - startY - transitionY * i - 16 - hideStart * i, paintText);
+                if (value < 0)
+                    value = 0;
+                String textValue = BelomorUtil.formatValue(value);
+                canvas.drawText(textValue, 0, height - startY - transitionY * i - 16 - hideStart * i, paintText);
             }
         } else {
             paintText.setAlpha(255);
 
             for (int i = 1; i < 6; i++) {
                 int value = (int) ((float) calculatedMaxValue / 5f * (float) i);
-                canvas.drawText(String.valueOf(value >= 0 ? value : 0), 0, height - startY - transitionY * i - 16, paintText);
+                if (value < 0)
+                    value = 0;
+                String textValue = BelomorUtil.formatValue(value);
+                canvas.drawText(textValue, 0, height - startY - transitionY * i - 16, paintText);
             }
         }
 
