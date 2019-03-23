@@ -1,5 +1,9 @@
 package com.belomor.telegramchart.view;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
+import android.animation.ObjectAnimator;
+import android.animation.ValueAnimator;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -87,6 +91,16 @@ public class GraphComponent extends TextureView implements TextureView.SurfaceTe
 
     private boolean threadRunning;
 
+    private float currentY;
+    private float actualY;
+
+    private boolean dateAnimate = false;
+    private int dateAlpha = 0;
+    private int currentDenominator = -1;
+    private int actualDenominator = -1;
+
+    private ValueAnimator valueAnimatorDate;
+
 
     public GraphComponent(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
@@ -105,7 +119,6 @@ public class GraphComponent extends TextureView implements TextureView.SurfaceTe
         paint.setStrokeCap(Paint.Cap.ROUND);
         paint.setAntiAlias(true);
         paint.setStyle(Paint.Style.STROKE);
-
         startY = 65f;
 
         paintLine = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -127,6 +140,36 @@ public class GraphComponent extends TextureView implements TextureView.SurfaceTe
         setSurfaceTextureListener(this);
 
         updateColors();
+    }
+
+    private void startDateAnimation(int toAlpha) {
+        if (valueAnimatorDate != null && valueAnimatorDate.isRunning())
+            valueAnimatorDate.cancel();
+
+        valueAnimatorDate = ObjectAnimator.ofInt(dateAlpha, toAlpha);
+        valueAnimatorDate.addUpdateListener(animation -> {
+            dateAnimate = true;
+            dateAlpha = (int) animation.getAnimatedValue();
+        });
+
+        valueAnimatorDate.addListener(new AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationCancel(Animator animation) {
+                super.onAnimationCancel(animation);
+                currentDenominator = actualDenominator;
+                dateAnimate = false;
+            }
+
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                super.onAnimationEnd(animation);
+                currentDenominator = actualDenominator;
+                dateAnimate = false;
+            }
+        });
+
+        valueAnimatorDate.setDuration(300);
+        valueAnimatorDate.start();
     }
 
     public void updateColors() {
@@ -208,6 +251,7 @@ public class GraphComponent extends TextureView implements TextureView.SurfaceTe
         int maxValue = 0;
 
         paintLine.setAlpha(255);
+
         canvas.drawLine(0, startY, width, startY, paintLine);
 
         float transitionY = ((float) height - startY) / 5f;
@@ -228,7 +272,7 @@ public class GraphComponent extends TextureView implements TextureView.SurfaceTe
         if (newHeightPerUser != heightPerUser && heightPerUser > 0f) {
             increaseHeight = newHeightPerUser > heightPerUser;
             animation = true;
-            drawDataAnimate(canvas, modelChart);
+//            drawDataAnimate(canvas, modelChart);
             return;
         }
 
@@ -255,9 +299,6 @@ public class GraphComponent extends TextureView implements TextureView.SurfaceTe
                 canvas.drawPath(path, paint);
             }
         }
-
-        drawDates(canvas, modelChart);
-        drawValues(canvas, modelChart);
 
         block = false;
 
@@ -351,15 +392,49 @@ public class GraphComponent extends TextureView implements TextureView.SurfaceTe
 
         int denominator = calculateDenominator();
 
+        if (currentDenominator == -1) {
+            currentDenominator = denominator;
+        }
+        actualDenominator = denominator;
+
         paintText.setTextAlign(Paint.Align.RIGHT);
 
         for (int i = 1; i <= itemsDate; i++) {
-            if (i % denominator == 0) {
-                int pos = i - 2;
-                long date = data.getColumnLong(0, pos);
-                Date result = new Date(date);
-                String text = simple.format(result);
-                canvas.drawText(text, offsetX + widthPerSize * (i - 1), height - TEXT_SIZE + 15, paintText);
+            if (actualDenominator == currentDenominator) {
+                if (i % denominator == 0) {
+                    int pos = i - 2;
+                    long date = data.getColumnLong(0, pos);
+                    Date result = new Date(date);
+                    String text = simple.format(result);
+                    canvas.drawText(text, offsetX + widthPerSize * (i - 1), height - TEXT_SIZE + 15, paintText);
+                }
+            } else {
+                if (!dateAnimate) {
+                    dateAnimate = true;
+                    int toAlpha = actualDenominator < currentDenominator ? 255 : 0;
+                    dateAlpha = 255 - toAlpha;
+                    post(() -> startDateAnimation(toAlpha));
+                }
+
+                int firstDenominator = actualDenominator > currentDenominator ? actualDenominator : currentDenominator;
+                int secondDenominator = actualDenominator < currentDenominator ? actualDenominator : currentDenominator;
+
+                paintText.setAlpha(255);
+                if (i % firstDenominator == 0) {
+                    int pos = i - 2;
+                    long date = data.getColumnLong(0, pos);
+                    Date result = new Date(date);
+                    String text = simple.format(result);
+                    canvas.drawText(text, offsetX + widthPerSize * (i - 1), height - TEXT_SIZE + 15, paintText);
+                } else if (i % secondDenominator == 0) {
+                    paintText.setAlpha(255);
+                    int pos = i - 2;
+                    long date = data.getColumnLong(0, pos);
+                    Date result = new Date(date);
+                    String text = simple.format(result);
+                    paintText.setAlpha(dateAlpha);
+                    canvas.drawText(text, offsetX + widthPerSize * (i - 1), height - TEXT_SIZE + 15, paintText);
+                }
             }
         }
         canvas.restore();
@@ -403,6 +478,37 @@ public class GraphComponent extends TextureView implements TextureView.SurfaceTe
         return true;
     }
 
+    private void drawVertex(Canvas canvas) {
+        int pos = (int) ((Math.abs(offsetX) + touchX + widthPerSize / 2) / widthPerSize);
+
+        float highValue = 0;
+
+        for (int i = 1; i < data.getColumns().size(); i++) {
+            if (data.getColumns().get(i).show) {
+                int value = data.getColumnInt(i, pos + 1);
+
+                if (highValue < value * heightPerUser + startY) {
+                    highValue = value * heightPerUser + startY;
+                }
+
+                paintCircle.setColor(ContextCompat.getColor(getContext(), GlobalManager.nightMode ? R.color.chart_background_dark : R.color.chart_background_light));
+                paintCircle.setStyle(Paint.Style.FILL);
+                canvas.drawCircle(offsetX + widthPerSize * pos, value * heightPerUser + startY, 16, paintCircle);
+
+                paintCircle.setColor(Color.parseColor(data.getColor().getColorByPos(i - 1)));
+                paintCircle.setStyle(Paint.Style.STROKE);
+                paintCircle.setStrokeWidth(6f);
+                canvas.drawCircle(offsetX + widthPerSize * pos, value * heightPerUser + startY, 16 - (2f / 2), paintCircle);
+
+            }
+        }
+
+        if (graphTouchListener != null) {
+            int loc[] = new int[2];
+            getLocationOnScreen(loc);
+            graphTouchListener.onTouch(pos, touchX, loc[1] - BelomorUtil.getDpInPx(320, getContext()));
+        }
+    }
 
     private void drawDataAnimate(Canvas canvas, ModelChart modelChart) {
         if (!animation)
@@ -486,9 +592,6 @@ public class GraphComponent extends TextureView implements TextureView.SurfaceTe
             }
         }
 
-        drawDates(canvas, modelChart);
-        drawValues(canvas, modelChart);
-
         block = false;
     }
 
@@ -496,43 +599,7 @@ public class GraphComponent extends TextureView implements TextureView.SurfaceTe
         if (!touched)
             return;
 
-        block = true;
-
         canvas.drawLine(touchX, startY, touchX, height + startY, paintVertLine);
-
-        drawData(canvas, data);
-
-        int pos = (int) ((Math.abs(offsetX) + touchX + widthPerSize / 2) / widthPerSize);
-
-        float highValue = 0;
-
-        for (int i = 1; i < data.getColumns().size(); i++) {
-            if (data.getColumns().get(i).show) {
-                int value = data.getColumnInt(i, pos + 1);
-
-                if (highValue < value * heightPerUser + startY) {
-                    highValue = value * heightPerUser + startY;
-                }
-
-                paintCircle.setColor(ContextCompat.getColor(getContext(), GlobalManager.nightMode ? R.color.chart_background_dark : R.color.chart_background_light));
-                paintCircle.setStyle(Paint.Style.FILL);
-                canvas.drawCircle(offsetX + widthPerSize * pos, value * heightPerUser + startY, 16, paintCircle);
-
-                paintCircle.setColor(Color.parseColor(data.getColor().getColorByPos(i - 1)));
-                paintCircle.setStyle(Paint.Style.STROKE);
-                paintCircle.setStrokeWidth(6f);
-                canvas.drawCircle(offsetX + widthPerSize * pos, value * heightPerUser + startY, 16 - (2f / 2), paintCircle);
-
-            }
-        }
-
-        if (graphTouchListener != null) {
-            int loc[]=new int[2];
-            getLocationOnScreen(loc);
-            graphTouchListener.onTouch(pos, touchX, loc[1] - BelomorUtil.getDpInPx(320, getContext()));
-        }
-
-        block = false;
     }
 
     public void setGraphTouchListener(GraphTouchListener graphTouchListener) {
@@ -565,35 +632,41 @@ public class GraphComponent extends TextureView implements TextureView.SurfaceTe
     @Override
     public void run() {
         while (threadRunning) {
-            if (startDraw || touched) {
-                if (!block) {
-                    long startFrame = System.currentTimeMillis();
+            if (startDraw || touched || dateAnimate || animation) {
+                long startFrame = System.currentTimeMillis();
 
-                    Canvas canvas = mSurface.lockCanvas(null);
-                    synchronized (mSurface) {
-                        if (data != null && height > 0 && width > 0 && end > 0) {
-                            canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
-                            if (touched) {
-                                drawVertLine(canvas, data);
-                            } else if (!animation) {
-                                drawData(canvas, data);
-                            } else {
-                                drawDataAnimate(canvas, data);
-                            }
+                Canvas canvas = mSurface.lockCanvas(null);
+                synchronized (mSurface) {
+                    if (data != null && height > 0 && width > 0 && end > 0) {
+                        canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
+                        if (touched) {
+                            drawVertLine(canvas, data);
+                            drawData(canvas, data);
+                            drawVertex(canvas);
+                            drawDates(canvas, data);
+                        } else if (!animation) {
+                            drawData(canvas, data);
+                            drawDates(canvas, data);
+                        } else {
+                            drawDataAnimate(canvas, data);
                         }
+
+                        drawValues(canvas, data);
+
+                        drawDates(canvas, data);
                     }
+                }
 
-                    mSurface.unlockCanvasAndPost(canvas);
+                mSurface.unlockCanvasAndPost(canvas);
 
-                    long finalFrameMs = System.currentTimeMillis() - startFrame;
+                long finalFrameMs = System.currentTimeMillis() - startFrame;
 
-                    long msDelay = finalFrameMs > 10 ? 1 : 10 - finalFrameMs;
+                long msDelay = finalFrameMs > 10 ? 1 : 10 - finalFrameMs;
 
-                    try {
-                        Thread.sleep(msDelay);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
+                try {
+                    Thread.sleep(msDelay);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
                 }
             }
         }
