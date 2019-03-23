@@ -86,12 +86,14 @@ public class MainActivity extends AppCompatActivity {
 
         for (int i = 0; i < charts.size(); i++) {
             GraphView graphView = new GraphView(this);
+
+            graphView.setData(charts.get(i));
+            graphView.setTitle("Chart #" + (i + 1));
             mContainer.addView(graphView);
             ((ViewGroup.MarginLayoutParams) graphView.getLayoutParams()).bottomMargin = BelomorUtil.getDpInPx(24, getApplicationContext());
             graphView.setElevation(BelomorUtil.getDpInPx(1, getApplicationContext()));
             chartViews.add(graphView);
 
-            graphView.setData(charts.get(i), 0);
         }
 
         handleTheme();

@@ -46,6 +46,9 @@ public class GraphView extends FrameLayout implements GraphTouchListener {
     @BindView(R.id.data_list)
     RecyclerView mDataList;
 
+    @BindView(R.id.title)
+    TextView mTitle;
+
     View popupParent;
 
     TextView popupDate;
@@ -79,6 +82,10 @@ public class GraphView extends FrameLayout implements GraphTouchListener {
     public GraphView(@NonNull Context context) {
         super(context);
         init(context);
+    }
+
+    public void setTitle(String title) {
+        mTitle.setText(title);
     }
 
     private void init(Context context) {
@@ -178,7 +185,7 @@ public class GraphView extends FrameLayout implements GraphTouchListener {
         maxValue = localMaxValue;
     }
 
-    public void setData(ModelChart chartList, int maxFollowers) {
+    public void setData(ModelChart chartList) {
         start = 0;
         end = chartList.getColumns().size() - 1;
         this.data = chartList;
@@ -193,11 +200,13 @@ public class GraphView extends FrameLayout implements GraphTouchListener {
 
         mDataList.setLayoutManager(linearLayoutManager);
         dataAdapter = new DataAdapter();
+
         dataAdapter.setGraphViewListener((pos, checked) -> {
             mGraph.redrawGraphs(pos, checked);
             mGraphSeek.redrawGraphs(pos, checked);
             calculateMaxValue();
         });
+
         dataAdapter.setColumnsData(chartList);
         mDataList.setAdapter(dataAdapter);
         calculateMaxValue();
@@ -222,10 +231,13 @@ public class GraphView extends FrameLayout implements GraphTouchListener {
 
         popupDate.setTextColor(ContextCompat.getColor(getContext(), GlobalManager.nightMode ? R.color.white : R.color.black));
 
-
         mGraphSeek.updateTheme();
 
         mGraph.redrawGraphs(-1, true);
+
+        dataAdapter.notifyDataSetChanged();
+
+        requestLayout();
     }
 
     @Override
