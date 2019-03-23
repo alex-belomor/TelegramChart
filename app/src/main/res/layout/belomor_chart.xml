@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/chart_parent"
     android:layout_width="match_parent"
@@ -16,94 +16,25 @@
         android:text="@string/followers"
         android:textColor="?android:colorAccent"
         android:textSize="@dimen/text_medium"
-        android:textStyle="bold"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:layout_width="60dp"
-        android:layout_height="0dp"
-        android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="@id/graph_component"
-        app:layout_constraintLeft_toLeftOf="@id/graph_component"
-        app:layout_constraintTop_toTopOf="@id/graph_component">
-
-        <TextSwitcher
-            android:id="@+id/ts_0"
-            android:layout_width="wrap_content"
-            android:layout_height="0dp"
-            app:layout_constraintHeight_percent="0.166"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-
-        <TextSwitcher
-            android:id="@+id/ts_1"
-            android:layout_width="wrap_content"
-            android:layout_height="0dp"
-            app:layout_constraintHeight_percent="0.166"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/ts_0" />
-
-        <TextSwitcher
-            android:id="@+id/ts_2"
-            android:layout_width="wrap_content"
-            android:layout_height="0dp"
-            app:layout_constraintHeight_percent="0.166"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/ts_1" />
-
-        <TextSwitcher
-            android:id="@+id/ts_3"
-            android:layout_width="wrap_content"
-            android:layout_height="0dp"
-            app:layout_constraintHeight_percent="0.166"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/ts_2" />
-
-        <TextSwitcher
-            android:id="@+id/ts_4"
-            android:layout_width="wrap_content"
-            android:layout_height="0dp"
-            app:layout_constraintHeight_percent="0.166"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/ts_3" />
-
-        <TextSwitcher
-            android:id="@+id/ts_5"
-            android:layout_width="wrap_content"
-            android:layout_height="0dp"
-            app:layout_constraintHeight_percent="0.166"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/ts_4" />
-    </androidx.constraintlayout.widget.ConstraintLayout>
-
-    <com.belomor.telegramchart.view.GraphSeek
-        android:id="@+id/graph_seek"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/graph_component" />
-
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/data_list"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:nestedScrollingEnabled="false"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/graph_seek" />
+        android:textStyle="bold" />
 
     <com.belomor.telegramchart.view.GraphComponent
         android:id="@+id/graph_component"
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="@dimen/chart_height"
-        android:layerType="hardware"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/title" />
+        android:layerType="hardware" />
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+    <com.belomor.telegramchart.view.GraphSeek
+        android:id="@+id/graph_seek"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/data_list"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:nestedScrollingEnabled="false" />
+
+</LinearLayout>

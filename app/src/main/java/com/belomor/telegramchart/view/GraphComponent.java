@@ -357,7 +357,7 @@ public class GraphComponent extends TextureView implements TextureView.SurfaceTe
     private int calculateDenominator() {
         float itemWidth = width / 6f;
         int denominator = 1;
-        int visibleItems = end - start;
+        int visibleItems = (int) ((float) width / widthPerSize);
         while (itemWidth * (visibleItems / denominator) > width) {
             denominator *= 2;
         }

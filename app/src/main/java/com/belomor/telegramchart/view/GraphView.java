@@ -12,6 +12,7 @@ import android.widget.PopupWindow;
 import android.widget.TextSwitcher;
 import android.widget.TextView;
 
+import com.belomor.telegramchart.BelomorUtil;
 import com.belomor.telegramchart.GlobalManager;
 import com.belomor.telegramchart.GraphTouchListener;
 import com.belomor.telegramchart.ItemDivider;
@@ -54,9 +55,6 @@ public class GraphView extends FrameLayout implements GraphTouchListener {
     TextView popupDate;
 
     PopupWindow mPopup;
-
-    @BindViews({R.id.ts_5, R.id.ts_4, R.id.ts_3, R.id.ts_2, R.id.ts_1, R.id.ts_0})
-    List<TextSwitcher> mTextViewSwitcher;
 
     ArrayList<View> valuesTextViewList = new ArrayList<>();
 
