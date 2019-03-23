@@ -50,38 +50,14 @@ public class StartActivity extends AppCompatActivity implements ItemAdapter.OnIt
         mChartsList.setLayoutManager(new LinearLayoutManager(getApplicationContext()));
         mChartsList.addItemDecoration(new DividerItemDecoration(getApplicationContext(), 1));
 
-        InputStream is = getResources().openRawResource(R.raw.chart_data);
-        Writer writer = new StringWriter();
-        char[] buffer = new char[1024];
-        try {
-            Reader reader = new BufferedReader(new InputStreamReader(is, "UTF-8"));
-            int n;
-            while ((n = reader.read(buffer)) != -1) {
-                writer.write(buffer, 0, n);
-            }
-            is.close();
 
-            String jsonString = writer.toString();
-
-            Gson gson = new Gson();
-            Type type = new TypeToken<ArrayList<ModelChart>>() {
-            }.getType();
-            JSONArray jsonObject = null;
-            try {
-                jsonObject = new JSONArray(jsonString);
-                chartArray = gson.fromJson(jsonObject.toString(), type);
-                itemAdapter = new ItemAdapter(chartArray,StartActivity.this);
-                mChartsList.setAdapter(itemAdapter);
-            } catch (JSONException e) {
-            }
-        } catch (Exception e) {
-        }
     }
 
     @Override
     public void onClick(int pos) {
         Intent intent = new Intent(this, MainActivity.class);
         intent.putExtra("chart", chartArray.get(pos));
+        intent.putExtra("charts", chartArray);
         startActivity(intent);
     }
 }

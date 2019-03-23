@@ -73,6 +73,15 @@ public class GraphView extends FrameLayout implements GraphTouchListener {
 
     public GraphView(@NonNull Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
+        init(context);
+    }
+
+    public GraphView(@NonNull Context context) {
+        super(context);
+        init(context);
+    }
+
+    private void init(Context context) {
         View view = LayoutInflater.from(context).inflate(R.layout.belomor_chart, null);
         addView(view);
 
