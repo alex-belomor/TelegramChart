@@ -297,10 +297,6 @@ public class GraphComponent extends TextureView implements TextureView.SurfaceTe
         if (newHeightPerUser != heightPerUser) {
             increaseHeight = newHeightPerUser > heightPerUser;
 
-            paintText.setAlpha(255);
-            canvas.drawText("0", 0, height - startY - 16, paintText);
-
-
             //showed lines
             paintText.setAlpha((int) (255 * changeHeightMultiplier));
             float showStart = (!increaseHeight ? 128 : -128) - (!increaseHeight ? 128 : -128) * changeHeightMultiplier;
@@ -343,19 +339,11 @@ public class GraphComponent extends TextureView implements TextureView.SurfaceTe
 
         canvas.scale(1f, -1f, (float) width / 2f, (float) height / 2f);
 
+        int denominator = calculateDenominator();
 
-        float viewPort = widthPerSize * (float) (itemsDate - 1);
-
-
-        int denominator = calculateDenominator(viewPort);
-
-//        denominator = (int) viewPort / (int) width;
-
-        float widthDate = viewPort / denominator;
+        float widthDate = widthPerSize * (float) denominator;
 
         paintText.setTextAlign(Paint.Align.CENTER);
-
-        int firstPos = -1;
 
         for (int i = 1; i <= itemsDate; i++) {
             if (i % denominator == 0) {
@@ -365,13 +353,13 @@ public class GraphComponent extends TextureView implements TextureView.SurfaceTe
                 long date = data.getColumnLong(0, pos);
                 Date result = new Date(date);
                 String text = simple.format(result);
-                canvas.drawText(text, offsetX + (pos - 1) * widthPerSize - widthPerSize * 1.5f, height - TEXT_SIZE + 15, paintText);
+                canvas.drawText(text, (offsetX + widthPerSize * (pos - 1)), height - TEXT_SIZE + 15, paintText);
             }
         }
         canvas.restore();
     }
 
-    private int calculateDenominator(float totalWidth) {
+    private int calculateDenominator() {
         float itemWidth = width / 6f;
         int denominator = 1;
         int visibleItems = end - start;
