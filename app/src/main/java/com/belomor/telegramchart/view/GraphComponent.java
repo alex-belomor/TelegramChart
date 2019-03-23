@@ -94,6 +94,8 @@ public class GraphComponent extends TextureView implements TextureView.SurfaceTe
 
     private int currentDenominator = 0;
 
+    private float dateAnimationTransition = 0f;
+
     private float startY;
 
     private int xValuesCount;
@@ -158,20 +160,13 @@ public class GraphComponent extends TextureView implements TextureView.SurfaceTe
 
         height = MeasureSpec.getSize(heightMeasureSpec) - (int) startY - (int) BelomorUtil.getDpInPx(20, getContext());
         width = MeasureSpec.getSize(widthMeasureSpec);
+    }
 
-        if (width > 0) {
-            int zoom = 1;
-            while (zoom < 5) {
-                ArrayList<Integer> values = new ArrayList<>();
-                int denominator = calculateDenominator(zoom);
-                for (int i = 1; i < data.getColumns().get(0).size() - 1; i++) {
-                    if (i % denominator == 0) {
-                        values.add(i);
-                    }
-                }
-                zoomLevelTransitions.put(zoom, values);
-                zoom *= 2;
-            }
+    private void calculateDrawTextTransition() {
+        dateAnimationTransition += 0.1f;
+        if (dateAnimationTransition >= 1f) {
+            dateAnimation = false;
+            latestDenominator = currentDenominator;
         }
     }
 
@@ -232,12 +227,10 @@ public class GraphComponent extends TextureView implements TextureView.SurfaceTe
         float returnedValue = heightPerUser + difference * changeHeightMultiplier;
         if (changeHeightMultiplier >= 1f) {
             animation = false;
-            dateAnimation = false;
             changeHeightMultiplier = 0f;
             heightPerUser += difference;
             this.maxValue = maxValue;
             maxGlobalValue = maxValue;
-            latestDenominator = currentDenominator;
             redrawGraph = false;
             redrawPos = -1;
             startDraw = false;
@@ -403,13 +396,14 @@ public class GraphComponent extends TextureView implements TextureView.SurfaceTe
                 }
             } else {
                 dateAnimation = true;
+                calculateDrawTextTransition();
                 if (currentDenominator > latestDenominator) {
                     if (i % currentDenominator == 0) {
                         int pos = i - 2;
                         long date = data.getColumnLong(0, pos);
                         Date result = new Date(date);
                         if (i % latestDenominator != 0)
-                            paintText.setAlpha((int) ((float) 255 * changeHeightMultiplier));
+                            paintText.setAlpha((int) ((float) 255 * dateAnimationTransition));
                         else
                             paintText.setAlpha(255);
                         String text = simple.format(result);
@@ -421,7 +415,7 @@ public class GraphComponent extends TextureView implements TextureView.SurfaceTe
                         long date = data.getColumnLong(0, pos);
                         Date result = new Date(date);
                         if (i % latestDenominator == 0)
-                            paintText.setAlpha((int) ((float) 255 - (float) 255 * changeHeightMultiplier));
+                            paintText.setAlpha((int) ((float) 255 - (float) 255 * dateAnimationTransition));
                         else
                             paintText.setAlpha(255);
                         String text = simple.format(result);
@@ -568,8 +562,10 @@ public class GraphComponent extends TextureView implements TextureView.SurfaceTe
 
         canvas.drawLine(touchX, startY, touchX, height + startY, paintVertLine);
 
-        drawData(canvas, data);
+        block = false;
+    }
 
+    private void drawSelectedVertex(Canvas canvas) {
         int pos = (int) ((Math.abs(offsetX) + touchX + widthPerSize / 2) / widthPerSize);
 
         float highValue = 0;
@@ -600,7 +596,6 @@ public class GraphComponent extends TextureView implements TextureView.SurfaceTe
             graphTouchListener.onTouch(pos, touchX, loc[1] - BelomorUtil.getDpInPx(320, getContext()));
         }
 
-        block = false;
     }
 
     public void setGraphTouchListener(GraphTouchListener graphTouchListener) {
@@ -633,8 +628,7 @@ public class GraphComponent extends TextureView implements TextureView.SurfaceTe
     @Override
     public void run() {
         while (threadRunning) {
-            if (startDraw || touched) {
-                if (!block) {
+            if (startDraw || touched || animation || dateAnimation) {
                     long startFrame = System.currentTimeMillis();
 
                     Canvas canvas = mSurface.lockCanvas(null);
@@ -643,6 +637,8 @@ public class GraphComponent extends TextureView implements TextureView.SurfaceTe
                             canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
                             if (touched) {
                                 drawVertLine(canvas, data);
+                                drawData(canvas, data);
+                                drawSelectedVertex(canvas);
                             } else if (!animation) {
                                 drawData(canvas, data);
                             }else {
@@ -669,5 +665,4 @@ public class GraphComponent extends TextureView implements TextureView.SurfaceTe
                 }
             }
         }
-    }
 }
