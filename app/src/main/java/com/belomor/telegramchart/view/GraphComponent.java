@@ -516,7 +516,9 @@ public class GraphComponent extends TextureView implements TextureView.SurfaceTe
         }
 
         if (graphTouchListener != null) {
-            graphTouchListener.onTouch(pos, touchX, BelomorUtil.getDpInPx(58, getContext()));
+            int loc[]=new int[2];
+            getLocationOnScreen(loc);
+            graphTouchListener.onTouch(pos, touchX, loc[1] - BelomorUtil.getDpInPx(320, getContext()));
         }
 
         block = false;
