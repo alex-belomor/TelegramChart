@@ -10,7 +10,6 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.PorterDuff;
-import android.graphics.PorterDuffXfermode;
 import android.graphics.SurfaceTexture;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
@@ -33,82 +32,62 @@ import androidx.core.content.ContextCompat;
 
 public class GraphComponent extends TextureView implements TextureView.SurfaceTextureListener, Runnable {
 
-    private ModelChart data;
+    private final int TEXT_SIZE = 35;
 
-    private Paint paint;
-    private Paint paintText;
+    private final float START_Y = 65f;
 
-    private Thread mThread;
-
-    private Surface mSurface;
-
-    private float heightPerUser = 0f;
-    private float widthPerSize = 0f;
-    private int maxGlobalValue;
-
-    private float changeHeightMultiplier = 0f;
-
-    private int dateOffset = 100;
-
-    private boolean startDraw = false;
-
-    private boolean animation = false;
-
-    private boolean redrawShow = false;
-
-    private int height, width;
-
-    private boolean block;
-
-    private Paint clearPaint = new Paint();
-
+    private float heightPerUser;
+    private float widthPerSize;
+    private float changeHeightMultiplier;
     private float offsetX;
-
-    private int redrawPos = -1;
-    private boolean redrawGraph = false;
-
-    private Path path = new Path();
-
-    private int start, end;
-
-    private boolean increaseHeight = false;
-
-    private Paint paintLine;
-
-    private Paint paintVertLine;
-
-    private Paint paintCircle;
-
-    private GraphTouchListener graphTouchListener;
-
-    private int maxValue = 0;
-
     private float touchX;
 
-    private boolean touched = false;
+    private boolean startDraw;
+    private boolean animation;
+    private boolean redrawShow;
+    private boolean redrawGraph;
+    private boolean increaseHeight;
+    private boolean touched;
+    private boolean block;
+    private boolean dateAnimate;
 
-    private float startY;
+    private boolean threadRunning;
 
-    private boolean dateAnimate = false;
+    private int height, width;
+    private int redrawPos = -1;
+    private int start, end;
+    private int maxValue = 0;
     private int dateAlpha = 0;
     private int currentDenominator = -1;
     private int actualDenominator = -1;
 
+    private GraphTouchListener graphTouchListener;
+
+    private Paint paint;
+    private Paint paintText;
+    private Paint paintLine;
+    private Paint paintVertLine;
+    private Paint paintCircle;
+    private Path path = new Path();
+
+    private ModelChart data;
+
+    private Thread mThread;
+
     private ValueAnimator valueAnimatorDate;
 
-    private boolean threadRunning;
+    private Surface mSurface;
 
 
+    //TODO NEEDED TO CHANGE DRAWING OF CHART (LINES AND SO ON) LOGIC IN THE FUTURE
+    //TODO IT IS IMPORTANT, WILL NOT FORGET IT
     public GraphComponent(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
 
         setOpaque(false);
 
-        clearPaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.CLEAR));
-
         paintText = new Paint(Paint.ANTI_ALIAS_FLAG);
-        int textSize = 38;
-        paintText.setTextSize(textSize);
+        paintText.setTextSize(TEXT_SIZE);
 
         paint = new Paint(Paint.ANTI_ALIAS_FLAG);
         paint.setStrokeWidth(6f);
@@ -116,8 +95,6 @@ public class GraphComponent extends TextureView implements TextureView.SurfaceTe
         paint.setStrokeCap(Paint.Cap.ROUND);
         paint.setAntiAlias(true);
         paint.setStyle(Paint.Style.STROKE);
-
-        startY = 65f;
 
         paintLine = new Paint(Paint.ANTI_ALIAS_FLAG);
         paintLine.setStrokeWidth(2.5f);
@@ -135,6 +112,7 @@ public class GraphComponent extends TextureView implements TextureView.SurfaceTe
 
         mThread = new Thread(this, "GraphView2");
         mThread.setPriority(Thread.MAX_PRIORITY);
+
         setSurfaceTextureListener(this);
 
         updateColors();
@@ -180,7 +158,7 @@ public class GraphComponent extends TextureView implements TextureView.SurfaceTe
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
 
-        height = MeasureSpec.getSize(heightMeasureSpec) - (int) startY - (int) BelomorUtil.getDpInPx(20, getContext());
+        height = MeasureSpec.getSize(heightMeasureSpec) - (int) START_Y - (int) BelomorUtil.getDpInPx(20, getContext());
         width = MeasureSpec.getSize(widthMeasureSpec);
     }
 
@@ -233,7 +211,6 @@ public class GraphComponent extends TextureView implements TextureView.SurfaceTe
             changeHeightMultiplier = 0f;
             heightPerUser += difference;
             this.maxValue = maxValue;
-            maxGlobalValue = maxValue;
             redrawGraph = false;
             redrawPos = -1;
             startDraw = false;
@@ -249,11 +226,11 @@ public class GraphComponent extends TextureView implements TextureView.SurfaceTe
         int maxValue = 0;
 
         paintLine.setAlpha(255);
-        canvas.drawLine(0, startY, width, startY, paintLine);
+        canvas.drawLine(0, START_Y, width, START_Y, paintLine);
 
-        float transitionY = ((float) height - startY) / 5f;
+        float transitionY = ((float) height - START_Y) / 5f;
         for (int i = 1; i < 6; i++) {
-            canvas.drawLine(0, startY + transitionY * i, width, startY + transitionY * i, paintLine);
+            canvas.drawLine(0, START_Y + transitionY * i, width, START_Y + transitionY * i, paintLine);
         }
 
         for (int i = 1; i < modelChart.getColumns().size(); i++) {
@@ -273,7 +250,6 @@ public class GraphComponent extends TextureView implements TextureView.SurfaceTe
             return;
         }
 
-        maxGlobalValue = maxValue;
         heightPerUser = newHeightPerUser;
         this.maxValue = maxValue;
 
@@ -286,10 +262,10 @@ public class GraphComponent extends TextureView implements TextureView.SurfaceTe
                 paint.setColor(Color.parseColor(color));
                 paint.setAlpha(255);
 
-                path.moveTo(latestX, startY + modelChart.getColumnInt(i, 1) * heightPerUser);
+                path.moveTo(latestX, START_Y + modelChart.getColumnInt(i, 1) * heightPerUser);
 
                 for (int j = 2; j < modelChart.getColumns().get(0).size(); j++) {
-                    path.lineTo(latestX + widthPerSize, startY + modelChart.getColumnInt(i, j) * heightPerUser);
+                    path.lineTo(latestX + widthPerSize, START_Y + modelChart.getColumnInt(i, j) * heightPerUser);
                     latestX = latestX + widthPerSize;
                 }
 
@@ -327,10 +303,10 @@ public class GraphComponent extends TextureView implements TextureView.SurfaceTe
         }
 
 
-        float transitionY = ((float) height - startY) / 5f;
+        float transitionY = ((float) height - START_Y) / 5f;
 
         paintText.setAlpha(255);
-        canvas.drawText("0", 0, height - startY - 16, paintText);
+        canvas.drawText("0", 0, height - START_Y - 16, paintText);
 
         int newCalculatedMaxValue = newMaxValue - (int) ((((height) - transitionY * 5f)) / newHeightPerUser);
         int calculatedMaxValue = maxValue - (int) ((((height) - transitionY * 5f)) / heightPerUser);
@@ -346,7 +322,7 @@ public class GraphComponent extends TextureView implements TextureView.SurfaceTe
                 if (value < 0)
                     value = 0;
                 String textValue = BelomorUtil.formatValue(value);
-                canvas.drawText(textValue, 0, height - startY - transitionY * i - 16 - showStart * i, paintText);
+                canvas.drawText(textValue, 0, height - START_Y - transitionY * i - 16 - showStart * i, paintText);
             }
 
             //hiding lines
@@ -357,7 +333,7 @@ public class GraphComponent extends TextureView implements TextureView.SurfaceTe
                 if (value < 0)
                     value = 0;
                 String textValue = BelomorUtil.formatValue(value);
-                canvas.drawText(textValue, 0, height - startY - transitionY * i - 16 - hideStart * i, paintText);
+                canvas.drawText(textValue, 0, height - START_Y - transitionY * i - 16 - hideStart * i, paintText);
             }
         } else {
             paintText.setAlpha(255);
@@ -367,15 +343,13 @@ public class GraphComponent extends TextureView implements TextureView.SurfaceTe
                 if (value < 0)
                     value = 0;
                 String textValue = BelomorUtil.formatValue(value);
-                canvas.drawText(textValue, 0, height - startY - transitionY * i - 16, paintText);
+                canvas.drawText(textValue, 0, height - START_Y - transitionY * i - 16, paintText);
             }
         }
 
         canvas.restore();
     }
 
-    private final int TEXT_SIZE = 35;
-    private final float APPROXIMATE_DATE_TEXT_WIDTH = TEXT_SIZE * 6;
 
     private void drawDates(Canvas canvas, ModelChart modelChart) {
         paintText.setAlpha(255);
@@ -491,30 +465,30 @@ public class GraphComponent extends TextureView implements TextureView.SurfaceTe
             increaseHeight = newHeightPerUser > heightPerUser;
 
             paintLine.setAlpha(255);
-            canvas.drawLine(0, startY, width, startY, paintLine);
+            canvas.drawLine(0, START_Y, width, START_Y, paintLine);
 
-            float transitionY = ((float) height - startY) / 5f;
+            float transitionY = ((float) height - START_Y) / 5f;
 
             //showed lines
             paintLine.setAlpha((int) (255 * changeHeightMultiplier));
             float showStart = (!increaseHeight ? 128 : -128) - (!increaseHeight ? 128 : -128) * changeHeightMultiplier;
             for (int i = 1; i < 6; i++) {
-                canvas.drawLine(0, startY + transitionY * i + showStart * i, width, startY + transitionY * i + showStart * i, paintLine);
+                canvas.drawLine(0, START_Y + transitionY * i + showStart * i, width, START_Y + transitionY * i + showStart * i, paintLine);
             }
 
             //hiding lines
             paintLine.setAlpha(255 - (int) (255 * changeHeightMultiplier));
             float hideStart = (increaseHeight ? 128 : -128) * changeHeightMultiplier;
             for (int i = 1; i < 6; i++) {
-                canvas.drawLine(0, startY + transitionY * i + hideStart * i, width, startY + transitionY * i + hideStart * i, paintLine);
+                canvas.drawLine(0, START_Y + transitionY * i + hideStart * i, width, START_Y + transitionY * i + hideStart * i, paintLine);
             }
         } else {
             paintLine.setAlpha(255);
-            canvas.drawLine(0, startY, width, startY, paintLine);
+            canvas.drawLine(0, START_Y, width, START_Y, paintLine);
 
-            float transitionY = ((float) height - startY) / 5f;
+            float transitionY = ((float) height - START_Y) / 5f;
             for (int i = 1; i < 6; i++) {
-                canvas.drawLine(0, startY + transitionY * i, width, startY + transitionY * i, paintLine);
+                canvas.drawLine(0, START_Y + transitionY * i, width, START_Y + transitionY * i, paintLine);
             }
         }
 
@@ -531,10 +505,10 @@ public class GraphComponent extends TextureView implements TextureView.SurfaceTe
                 if (i == redrawPos && redrawGraph && changeHeightMultiplier > 0 && changeHeightMultiplier <= 1f)
                     paint.setAlpha((int) (255 * changeHeightMultiplier));
 
-                path.moveTo(latestX, startY + modelChart.getColumnInt(i, 1) * newHeightPerUser);
+                path.moveTo(latestX, START_Y + modelChart.getColumnInt(i, 1) * newHeightPerUser);
 
                 for (int j = 2; j < modelChart.getColumns().get(0).size(); j++) {
-                    path.lineTo(latestX + widthPerSize, startY + modelChart.getColumnInt(i, j) * newHeightPerUser);
+                    path.lineTo(latestX + widthPerSize, START_Y + modelChart.getColumnInt(i, j) * newHeightPerUser);
                     latestX = latestX + widthPerSize;
                 }
 
@@ -549,10 +523,10 @@ public class GraphComponent extends TextureView implements TextureView.SurfaceTe
 
                 paint.setAlpha(alpha);
 
-                path.moveTo(latestX, startY + modelChart.getColumnInt(redrawPos, 1) * newHeightPerUser);
+                path.moveTo(latestX, START_Y + modelChart.getColumnInt(redrawPos, 1) * newHeightPerUser);
 
                 for (int j = 2; j < modelChart.getColumns().get(0).size(); j++) {
-                    path.lineTo(latestX + widthPerSize, startY + modelChart.getColumnInt(redrawPos, j) * newHeightPerUser);
+                    path.lineTo(latestX + widthPerSize, START_Y + modelChart.getColumnInt(redrawPos, j) * newHeightPerUser);
                     latestX = latestX + widthPerSize;
                 }
 
@@ -572,7 +546,7 @@ public class GraphComponent extends TextureView implements TextureView.SurfaceTe
 
         block = true;
 
-        canvas.drawLine(touchX, startY, touchX, height + startY, paintVertLine);
+        canvas.drawLine(touchX, START_Y, touchX, height + START_Y, paintVertLine);
 
         drawData(canvas, data);
 
@@ -584,24 +558,24 @@ public class GraphComponent extends TextureView implements TextureView.SurfaceTe
             if (data.getColumns().get(i).show) {
                 int value = data.getColumnInt(i, pos + 1);
 
-                if (highValue < value * heightPerUser + startY) {
-                    highValue = value * heightPerUser + startY;
+                if (highValue < value * heightPerUser + START_Y) {
+                    highValue = value * heightPerUser + START_Y;
                 }
 
                 paintCircle.setColor(ContextCompat.getColor(getContext(), GlobalManager.nightMode ? R.color.chart_background_dark : R.color.chart_background_light));
                 paintCircle.setStyle(Paint.Style.FILL);
-                canvas.drawCircle(offsetX + widthPerSize * pos, value * heightPerUser + startY, 16, paintCircle);
+                canvas.drawCircle(offsetX + widthPerSize * pos, value * heightPerUser + START_Y, 16, paintCircle);
 
                 paintCircle.setColor(Color.parseColor(data.getColor().getColorByPos(i - 1)));
                 paintCircle.setStyle(Paint.Style.STROKE);
                 paintCircle.setStrokeWidth(6f);
-                canvas.drawCircle(offsetX + widthPerSize * pos, value * heightPerUser + startY, 16 - (2f / 2), paintCircle);
+                canvas.drawCircle(offsetX + widthPerSize * pos, value * heightPerUser + START_Y, 16 - (2f / 2), paintCircle);
 
             }
         }
 
         if (graphTouchListener != null) {
-            int loc[]=new int[2];
+            int loc[] = new int[2];
             getLocationOnScreen(loc);
             graphTouchListener.onTouch(pos, touchX, loc[1] - BelomorUtil.getDpInPx(320, getContext()));
         }
@@ -648,7 +622,8 @@ public class GraphComponent extends TextureView implements TextureView.SurfaceTe
                         if (data != null) {
                             canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
 
-                            drawDates(canvas, data);
+//                            drawDates(canvas, data);
+
                             if (touched) {
                                 drawVertLine(canvas, data);
                             } else if (!animation) {
@@ -661,10 +636,7 @@ public class GraphComponent extends TextureView implements TextureView.SurfaceTe
 
                     mSurface.unlockCanvasAndPost(canvas);
 
-                    long finalFrameMs = System.currentTimeMillis() - startFrame;
-
-//                    long msDelay = finalFrameMs > 6 ? 1 : 6 - finalFrameMs;
-                    long msDelay = 1;
+                    long msDelay = 8;
 
                     try {
                         Thread.sleep(msDelay);
