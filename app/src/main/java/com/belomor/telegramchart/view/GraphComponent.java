@@ -191,7 +191,7 @@ public class GraphComponent extends TextureView implements TextureView.SurfaceTe
 
 
     private float calculateAnimatedHeight(ModelChart modelChart) {
-        changeHeightMultiplier += 0.025f;
+        changeHeightMultiplier += 0.033f;
         if (changeHeightMultiplier >= 1f)
             changeHeightMultiplier = 1f;
         int maxValue = 0;
@@ -618,7 +618,7 @@ public class GraphComponent extends TextureView implements TextureView.SurfaceTe
     @Override
     public void run() {
         while (threadRunning) {
-            if (startDraw || touched || dateAnimate || animation) {
+            if (startDraw || touched || dateAnimate) {
                 if (!block) {
                     long startFrame = System.currentTimeMillis();
 
