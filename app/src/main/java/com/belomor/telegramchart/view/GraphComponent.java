@@ -304,7 +304,6 @@ public class GraphComponent extends TextureView implements TextureView.SurfaceTe
             }
         }
 
-
         float transitionY = ((float) height - START_Y) / 5f;
 
         paintText.setAlpha(255);
@@ -642,7 +641,7 @@ public class GraphComponent extends TextureView implements TextureView.SurfaceTe
 
                     mSurface.unlockCanvasAndPost(canvas);
 
-                    long msDelay = 8;
+                    long msDelay = 4;
 
                     try {
                         Thread.sleep(msDelay);
