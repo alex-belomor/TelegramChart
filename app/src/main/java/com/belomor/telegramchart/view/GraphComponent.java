@@ -471,14 +471,14 @@ public class GraphComponent extends TextureView implements TextureView.SurfaceTe
 
             //showed lines
             paintLine.setAlpha((int) (255 * changeHeightMultiplier));
-            float showStart = (!increaseHeight ? 128 : -128) - (!increaseHeight ? 128 : -128) * changeHeightMultiplier;
+            float showStart = (!increaseHeight ? LINE_TRANSITION : -LINE_TRANSITION) - (!increaseHeight ? LINE_TRANSITION : -LINE_TRANSITION) * changeHeightMultiplier;
             for (int i = 1; i < 6; i++) {
                 canvas.drawLine(0, START_Y + transitionY * i + showStart * i, width, START_Y + transitionY * i + showStart * i, paintLine);
             }
 
             //hiding lines
             paintLine.setAlpha(255 - (int) (255 * changeHeightMultiplier));
-            float hideStart = (increaseHeight ? 128 : -128) * changeHeightMultiplier;
+            float hideStart = (increaseHeight ? LINE_TRANSITION : -LINE_TRANSITION) * changeHeightMultiplier;
             for (int i = 1; i < 6; i++) {
                 canvas.drawLine(0, START_Y + transitionY * i + hideStart * i, width, START_Y + transitionY * i + hideStart * i, paintLine);
             }
@@ -622,8 +622,6 @@ public class GraphComponent extends TextureView implements TextureView.SurfaceTe
                         if (data != null) {
                             canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
 
-//                            drawDates(canvas, data);
-
                             if (touched) {
                                 drawVertLine(canvas, data);
                             } else if (!animation) {
@@ -631,6 +629,8 @@ public class GraphComponent extends TextureView implements TextureView.SurfaceTe
                             } else {
                                 drawDataAnimate(canvas, data);
                             }
+
+                            drawDates(canvas, data);
                         }
                     }
 
