@@ -99,7 +99,12 @@ public class GraphComponent extends TextureView implements TextureView.SurfaceTe
     private int currentDenominator = -1;
     private int actualDenominator = -1;
 
+    private boolean heightAnimate = false;
+    private float currentHight = 0f;
+    private float actualHeight = -1f;
+
     private ValueAnimator valueAnimatorDate;
+    private ValueAnimator valueHeightAnimator;
 
 
     public GraphComponent(Context context, @Nullable AttributeSet attrs) {
@@ -172,6 +177,37 @@ public class GraphComponent extends TextureView implements TextureView.SurfaceTe
         valueAnimatorDate.start();
     }
 
+    private void startHeightAnimation(float toHeight) {
+        if (valueHeightAnimator != null && valueAnimatorDate.isRunning()) {
+            valueHeightAnimator.cancel();
+        }
+
+        valueHeightAnimator = ObjectAnimator.ofFloat(actualHeight, toHeight);
+        valueHeightAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+            @Override
+            public void onAnimationUpdate(ValueAnimator animation) {
+                heightAnimate = true;
+                currentHight = (float) animation.getAnimatedValue();
+            }
+        });
+
+        valueHeightAnimator.addListener(new AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationCancel(Animator animation) {
+                super.onAnimationCancel(animation);
+                currentHight = actualHeight;
+                heightAnimate = false;
+            }
+
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                super.onAnimationEnd(animation);
+                currentHight = actualHeight;
+                heightAnimate = false;
+            }
+        });
+    }
+
     public void updateColors() {
         paintText.setColor(ContextCompat.getColor(getContext(), GlobalManager.nightMode ? R.color.chart_text_dark : R.color.chart_text_light));
         paintLine.setColor(ContextCompat.getColor(getContext(), GlobalManager.nightMode ? R.color.chart_line_dark : R.color.chart_line_light));
@@ -194,6 +230,8 @@ public class GraphComponent extends TextureView implements TextureView.SurfaceTe
             this.start = start;
             this.end = end;
         }
+
+        checkHeight();
     }
 
     public void rangeChart(int start, int end, float widthPerSize, float offsetX) {
@@ -203,6 +241,7 @@ public class GraphComponent extends TextureView implements TextureView.SurfaceTe
         this.widthPerSize = widthPerSize;
         this.offsetX = offsetX;
         startDraw = true;
+        checkHeight();
     }
 
     public void redrawGraphs(int pos, boolean show) {
@@ -211,6 +250,23 @@ public class GraphComponent extends TextureView implements TextureView.SurfaceTe
         animation = true;
         redrawShow = show;
         startDraw = true;
+        checkHeight();
+    }
+
+    private void checkHeight() {
+        for (int i = 1; i < data.getColumns().size(); i++) {
+            if (data.getColumns().get(i).show) {
+                int localMaxValue = data.getColumns().get(i).getMaxValueInInterval(start, end);
+                if (localMaxValue > maxValue) {
+                    maxValue = localMaxValue;
+                    actualHeight = (float) height / (float) localMaxValue;
+                }
+            }
+        }
+
+        if (currentHight != actualHeight) {
+            startHeightAnimation(actualHeight);
+        }
     }
 
 
@@ -242,6 +298,59 @@ public class GraphComponent extends TextureView implements TextureView.SurfaceTe
         }
 
         return returnedValue;
+    }
+
+    private void drawLines(Canvas canvas, ModelChart modelChart) {
+//        paintLine.setAlpha(255);
+//
+//        canvas.drawLine(0, startY, width, startY, paintLine);
+//
+//        float transitionY = ((float) height - startY) / 5f;
+//        for (int i = 1; i < 6; i++) {
+//            canvas.drawLine(0, startY + transitionY * i, width, startY + transitionY * i, paintLine);
+//        }
+//
+//        for (int i = 1; i < modelChart.getColumns().size(); i++) {
+//            if (modelChart.getColumns().get(i).show) {
+//                int localMaxValue = modelChart.getColumns().get(i).getMaxValueInInterval(start, end);
+//                if (localMaxValue > maxValue) {
+//                    maxValue = localMaxValue;
+//                    newHeightPerUser = (float) height / (float) localMaxValue;
+//                }
+//            }
+//        }
+//
+//        if (newHeightPerUser != heightPerUser && heightPerUser > 0f) {
+//            increaseHeight = newHeightPerUser > heightPerUser;
+//            animation = true;
+////            drawDataAnimate(canvas, modelChart);
+//            return;
+//        }
+//
+//        maxGlobalValue = maxValue;
+//        heightPerUser = newHeightPerUser;
+//        this.maxValue = maxValue;
+//
+//        for (int i = 1; i < modelChart.getColumns().size(); i++) {
+//            if (modelChart.getColumns().get(i).show) {
+//                path.reset();
+//
+//                float latestX = offsetX;
+//                String color = modelChart.getColor().getColorByPos(i - 1);
+//                paint.setColor(Color.parseColor(color));
+//                paint.setAlpha(255);
+//
+//                path.moveTo(latestX, startY + modelChart.getColumnInt(i, 1) * heightPerUser);
+//
+//                for (int j = 2; j < modelChart.getColumns().get(0).size(); j++) {
+//                    path.lineTo(latestX + widthPerSize, startY + modelChart.getColumnInt(i, j) * heightPerUser);
+//                    latestX = latestX + widthPerSize;
+//                }
+//
+//                canvas.drawPath(path, paint);
+//            }
+//        }
+
     }
 
     private void drawData(Canvas canvas, ModelChart modelChart) {
@@ -514,8 +623,6 @@ public class GraphComponent extends TextureView implements TextureView.SurfaceTe
         if (!animation)
             return;
 
-        block = true;
-
         float newHeightPerUser = calculateAnimatedHeight(modelChart);
 
         if (newHeightPerUser != heightPerUser) {
@@ -592,7 +699,6 @@ public class GraphComponent extends TextureView implements TextureView.SurfaceTe
             }
         }
 
-        block = false;
     }
 
     private void drawVertLine(Canvas canvas, ModelChart data) {
@@ -632,28 +738,31 @@ public class GraphComponent extends TextureView implements TextureView.SurfaceTe
     @Override
     public void run() {
         while (threadRunning) {
-            if (startDraw || touched || dateAnimate || animation) {
+            if (startDraw || touched || dateAnimate || animation || heightAnimate) {
                 long startFrame = System.currentTimeMillis();
 
                 Canvas canvas = mSurface.lockCanvas(null);
                 synchronized (mSurface) {
                     if (data != null && height > 0 && width > 0 && end > 0) {
                         canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
+
                         if (touched) {
                             drawVertLine(canvas, data);
                             drawData(canvas, data);
                             drawVertex(canvas);
-                            drawDates(canvas, data);
-                        } else if (!animation) {
-                            drawData(canvas, data);
-                            drawDates(canvas, data);
                         } else {
-                            drawDataAnimate(canvas, data);
+                            if (heightAnimate) {
+                                drawLines(canvas, data);
+                            } else if (animation)
+                                drawDataAnimate(canvas, data);
+                            else
+                                drawData(canvas, data);
                         }
 
-                        drawValues(canvas, data);
 
                         drawDates(canvas, data);
+                        drawValues(canvas, data);
+
                     }
                 }
 
