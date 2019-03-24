@@ -17,7 +17,7 @@ import android.view.Surface;
 import android.view.TextureView;
 
 import com.belomor.telegramchart.BelomorUtil;
-import com.belomor.telegramchart.GlobalManager;
+import com.belomor.telegramchart.ThemeManager;
 import com.belomor.telegramchart.GraphTouchListener;
 import com.belomor.telegramchart.R;
 import com.belomor.telegramchart.data.ModelChart;
@@ -119,9 +119,9 @@ public class GraphComponent extends TextureView implements TextureView.SurfaceTe
     }
 
     public void updateColors() {
-        paintText.setColor(ContextCompat.getColor(getContext(), GlobalManager.nightMode ? R.color.chart_text_dark : R.color.chart_text_light));
-        paintLine.setColor(ContextCompat.getColor(getContext(), GlobalManager.nightMode ? R.color.chart_line_dark : R.color.chart_line_light));
-        paintVertLine.setColor(ContextCompat.getColor(getContext(), GlobalManager.nightMode ? R.color.chart_line_dark : R.color.chart_line_light));
+        paintText.setColor(ContextCompat.getColor(getContext(), ThemeManager.nightMode ? R.color.chart_text_dark : R.color.chart_text_light));
+        paintLine.setColor(ContextCompat.getColor(getContext(), ThemeManager.nightMode ? R.color.chart_line_dark : R.color.chart_line_light));
+        paintVertLine.setColor(ContextCompat.getColor(getContext(), ThemeManager.nightMode ? R.color.chart_line_dark : R.color.chart_line_light));
     }
 
     private void startDateAnimation(int toAlpha) {
@@ -220,6 +220,8 @@ public class GraphComponent extends TextureView implements TextureView.SurfaceTe
     }
 
     private void drawData(Canvas canvas, ModelChart modelChart) {
+        startDraw = true;
+
         block = true;
 
         float newHeightPerUser = 0f;
@@ -352,6 +354,8 @@ public class GraphComponent extends TextureView implements TextureView.SurfaceTe
 
 
     private void drawDates(Canvas canvas, ModelChart modelChart) {
+        block = true;
+
         paintText.setAlpha(255);
 
         int itemsDate = modelChart.getColumns().get(0).size() - 1;
@@ -412,6 +416,8 @@ public class GraphComponent extends TextureView implements TextureView.SurfaceTe
         }
 
         canvas.restore();
+
+        block = false;
     }
 
     private int calculateDenominator() {
@@ -562,7 +568,7 @@ public class GraphComponent extends TextureView implements TextureView.SurfaceTe
                     highValue = value * heightPerUser + START_Y;
                 }
 
-                paintCircle.setColor(ContextCompat.getColor(getContext(), GlobalManager.nightMode ? R.color.chart_background_dark : R.color.chart_background_light));
+                paintCircle.setColor(ContextCompat.getColor(getContext(), ThemeManager.nightMode ? R.color.chart_background_dark : R.color.chart_background_light));
                 paintCircle.setStyle(Paint.Style.FILL);
                 canvas.drawCircle(offsetX + widthPerSize * pos, value * heightPerUser + START_Y, 16, paintCircle);
 

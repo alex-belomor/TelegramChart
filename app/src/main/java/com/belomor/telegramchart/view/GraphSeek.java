@@ -9,7 +9,7 @@ import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 
-import com.belomor.telegramchart.GlobalManager;
+import com.belomor.telegramchart.ThemeManager;
 import com.belomor.telegramchart.R;
 import com.belomor.telegramchart.SeekListener;
 import com.belomor.telegramchart.data.ModelChart;
@@ -89,12 +89,12 @@ public class GraphSeek extends FrameLayout {
     }
 
     public void updateTheme() {
-        mFrom.setImageDrawable(new ColorDrawable(ContextCompat.getColor(getContext(), GlobalManager.nightMode ? R.color.seek_view_border_color_dark : R.color.seek_view_border_color_light)));
-        mTo.setImageDrawable(new ColorDrawable(ContextCompat.getColor(getContext(), GlobalManager.nightMode ? R.color.seek_view_border_color_dark : R.color.seek_view_border_color_light)));
-        mTopBorder.setBackgroundColor(ContextCompat.getColor(getContext(), GlobalManager.nightMode ? R.color.seek_view_border_color_dark : R.color.seek_view_border_color_light));
-        mBottomBorder.setBackgroundColor(ContextCompat.getColor(getContext(), GlobalManager.nightMode ? R.color.seek_view_border_color_dark : R.color.seek_view_border_color_light));
-        mOff1.setBackgroundColor(ContextCompat.getColor(getContext(), GlobalManager.nightMode ? R.color.seek_view_off_color_dark : R.color.seek_view_off_color_light));
-        mOff2.setBackgroundColor(ContextCompat.getColor(getContext(), GlobalManager.nightMode ? R.color.seek_view_off_color_dark : R.color.seek_view_off_color_light));
+        mFrom.setImageDrawable(new ColorDrawable(ContextCompat.getColor(getContext(), ThemeManager.nightMode ? R.color.seek_view_border_color_dark : R.color.seek_view_border_color_light)));
+        mTo.setImageDrawable(new ColorDrawable(ContextCompat.getColor(getContext(), ThemeManager.nightMode ? R.color.seek_view_border_color_dark : R.color.seek_view_border_color_light)));
+        mTopBorder.setBackgroundColor(ContextCompat.getColor(getContext(), ThemeManager.nightMode ? R.color.seek_view_border_color_dark : R.color.seek_view_border_color_light));
+        mBottomBorder.setBackgroundColor(ContextCompat.getColor(getContext(), ThemeManager.nightMode ? R.color.seek_view_border_color_dark : R.color.seek_view_border_color_light));
+        mOff1.setBackgroundColor(ContextCompat.getColor(getContext(), ThemeManager.nightMode ? R.color.seek_view_off_color_dark : R.color.seek_view_off_color_light));
+        mOff2.setBackgroundColor(ContextCompat.getColor(getContext(), ThemeManager.nightMode ? R.color.seek_view_off_color_dark : R.color.seek_view_off_color_light));
     }
 
     public void setOnSeekListener(SeekListener seekListener) {

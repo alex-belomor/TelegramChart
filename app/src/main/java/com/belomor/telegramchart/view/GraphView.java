@@ -9,11 +9,10 @@ import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
-import android.widget.TextSwitcher;
 import android.widget.TextView;
 
 import com.belomor.telegramchart.BelomorUtil;
-import com.belomor.telegramchart.GlobalManager;
+import com.belomor.telegramchart.ThemeManager;
 import com.belomor.telegramchart.GraphTouchListener;
 import com.belomor.telegramchart.ItemDivider;
 import com.belomor.telegramchart.R;
@@ -25,7 +24,6 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 import java.util.Locale;
 
 import androidx.annotation.NonNull;
@@ -34,7 +32,6 @@ import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import butterknife.BindView;
-import butterknife.BindViews;
 import butterknife.ButterKnife;
 
 public class GraphView extends FrameLayout implements GraphTouchListener {
@@ -190,7 +187,7 @@ public class GraphView extends FrameLayout implements GraphTouchListener {
         this.data = chartList;
 
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getContext());
-        ItemDivider dividerItemDecoration = new ItemDivider(getResources().getDrawable(GlobalManager.nightMode ? R.drawable.divider_night : R.drawable.divider_light, null));
+        ItemDivider dividerItemDecoration = new ItemDivider(getResources().getDrawable(ThemeManager.nightMode ? R.drawable.divider_night : R.drawable.divider_light, null));
 
         mDataList.addItemDecoration(dividerItemDecoration);
 
@@ -218,7 +215,7 @@ public class GraphView extends FrameLayout implements GraphTouchListener {
             mDataList.removeItemDecoration(dividerItemDecoration);
         }
 
-        dividerItemDecoration = new ItemDivider(getResources().getDrawable(GlobalManager.nightMode ? R.drawable.divider_night : R.drawable.divider_light, null));
+        dividerItemDecoration = new ItemDivider(getResources().getDrawable(ThemeManager.nightMode ? R.drawable.divider_night : R.drawable.divider_light, null));
 
         mDataList.addItemDecoration(dividerItemDecoration);
 
@@ -226,9 +223,9 @@ public class GraphView extends FrameLayout implements GraphTouchListener {
 
         mGraph.updateColors();
 
-        popupParent.setBackgroundResource(GlobalManager.nightMode ? R.drawable.popup_background_dark : R.drawable.popup_background_light);
+        popupParent.setBackgroundResource(ThemeManager.nightMode ? R.drawable.popup_background_dark : R.drawable.popup_background_light);
 
-        popupDate.setTextColor(ContextCompat.getColor(getContext(), GlobalManager.nightMode ? R.color.white : R.color.black));
+        popupDate.setTextColor(ContextCompat.getColor(getContext(), ThemeManager.nightMode ? R.color.white : R.color.black));
 
         mGraphSeek.updateTheme();
 

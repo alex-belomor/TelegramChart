@@ -8,7 +8,7 @@ import android.view.ViewGroup;
 import android.widget.CheckBox;
 import android.widget.TextView;
 
-import com.belomor.telegramchart.GlobalManager;
+import com.belomor.telegramchart.ThemeManager;
 import com.belomor.telegramchart.GraphViewListener;
 import com.belomor.telegramchart.R;
 import com.belomor.telegramchart.data.ModelChart;
@@ -79,7 +79,7 @@ public class DataAdapter extends RecyclerView.Adapter<DataAdapter.DataViewHolder
             checkBox.setChecked(modelChart.getColumns().get(pos + 1).show);
             title.setText(modelChart.getName().getNameByPos(pos));
 
-            title.setTextColor(ContextCompat.getColor(title.getContext(), GlobalManager.nightMode ? R.color.white : R.color.black));
+            title.setTextColor(ContextCompat.getColor(title.getContext(), ThemeManager.nightMode ? R.color.white : R.color.black));
 
 
             int color = Color.parseColor(modelChart.getColor().getColorByPos(pos));

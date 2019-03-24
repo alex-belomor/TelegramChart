@@ -10,7 +10,6 @@ import android.view.WindowManager;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 
-import com.belomor.telegramchart.adapter.ItemAdapter;
 import com.belomor.telegramchart.data.ModelChart;
 import com.belomor.telegramchart.view.GraphView;
 import com.google.gson.Gson;
@@ -112,7 +111,7 @@ public class MainActivity extends AppCompatActivity {
     private void handleTheme() {
         Window window = getWindow();
         window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
-        if (GlobalManager.nightMode) {
+        if (ThemeManager.nightMode) {
             getSupportActionBar().setBackgroundDrawable(new ColorDrawable(ContextCompat.getColor(getApplicationContext(), R.color.colorPrimary_dark)));
             window.setStatusBarColor(ContextCompat.getColor(getApplicationContext(), R.color.colorPrimaryDark_dark));
             mParent.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.window_background_dark));
@@ -137,7 +136,7 @@ public class MainActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
         if (id == R.id.night) {
-            GlobalManager.nightMode = !GlobalManager.nightMode;
+            ThemeManager.nightMode = !ThemeManager.nightMode;
             handleTheme();
         }
         return super.onOptionsItemSelected(item);
