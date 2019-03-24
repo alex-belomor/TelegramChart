@@ -41,6 +41,7 @@ public class GraphComponent extends TextureView implements TextureView.SurfaceTe
     private float changeHeightMultiplier;
     private float offsetX;
     private float touchX;
+    private float actualHeightPerUser;
 
     private boolean startDraw;
     private boolean animation;
@@ -191,7 +192,7 @@ public class GraphComponent extends TextureView implements TextureView.SurfaceTe
 
 
     private float calculateAnimatedHeight(ModelChart modelChart) {
-        changeHeightMultiplier += 0.02f;
+        changeHeightMultiplier += 0.05f;
         if (changeHeightMultiplier >= 1f)
             changeHeightMultiplier = 1f;
         int maxValue = 0;
@@ -210,6 +211,7 @@ public class GraphComponent extends TextureView implements TextureView.SurfaceTe
             animation = false;
             changeHeightMultiplier = 0f;
             heightPerUser += difference;
+            actualHeightPerUser = heightPerUser;
             this.maxValue = maxValue;
             redrawGraph = false;
             redrawPos = -1;
@@ -227,7 +229,6 @@ public class GraphComponent extends TextureView implements TextureView.SurfaceTe
 
         block = true;
 
-        float newHeightPerUser = 0f;
         int maxValue = 0;
 
         paintLine.setAlpha(255);
@@ -243,19 +244,18 @@ public class GraphComponent extends TextureView implements TextureView.SurfaceTe
                 int localMaxValue = modelChart.getColumns().get(i).getMaxValueInInterval(start, end);
                 if (localMaxValue > maxValue) {
                     maxValue = localMaxValue;
-                    newHeightPerUser = (float) height / (float) localMaxValue;
+                    actualHeightPerUser = (float) height / (float) localMaxValue;
                 }
             }
         }
 
-        if (newHeightPerUser != heightPerUser && heightPerUser > 0f) {
-            increaseHeight = newHeightPerUser > heightPerUser;
+        if (actualHeightPerUser != heightPerUser && heightPerUser > 0f) {
+            increaseHeight = actualHeightPerUser > heightPerUser;
             animation = true;
             drawDataAnimate(canvas, modelChart);
             return;
         }
 
-        heightPerUser = newHeightPerUser;
         this.maxValue = maxValue;
 
         for (int i = 1; i < modelChart.getColumns().size(); i++) {
@@ -287,8 +287,6 @@ public class GraphComponent extends TextureView implements TextureView.SurfaceTe
 
     private void drawValues(Canvas canvas, ModelChart modelChart) {
 
-        float newHeightPerUser = calculateAnimatedHeight(modelChart);
-
         canvas.save();
         canvas.scale(1f, -1f, (float) width / 2f, (float) height / 2f);
 
@@ -310,11 +308,11 @@ public class GraphComponent extends TextureView implements TextureView.SurfaceTe
         paintText.setAlpha(255);
         canvas.drawText("0", 0, height - START_Y - 16, paintText);
 
-        int newCalculatedMaxValue = newMaxValue - (int) ((((height) - transitionY * 5f)) / newHeightPerUser);
+        int newCalculatedMaxValue = newMaxValue - (int) ((((height) - transitionY * 5f)) / actualHeightPerUser);
         int calculatedMaxValue = maxValue - (int) ((((height) - transitionY * 5f)) / heightPerUser);
 
-        if (newHeightPerUser != heightPerUser) {
-            increaseHeight = newHeightPerUser > heightPerUser;
+        if (actualHeightPerUser != heightPerUser) {
+            increaseHeight = actualHeightPerUser > heightPerUser;
 
             //showed lines
             paintText.setAlpha((int) (255 * changeHeightMultiplier));
@@ -465,10 +463,9 @@ public class GraphComponent extends TextureView implements TextureView.SurfaceTe
 
         block = true;
 
-        float newHeightPerUser = calculateAnimatedHeight(modelChart);
 
-        if (newHeightPerUser != heightPerUser) {
-            increaseHeight = newHeightPerUser > heightPerUser;
+        if (actualHeightPerUser != heightPerUser) {
+            increaseHeight = actualHeightPerUser > heightPerUser;
 
             paintLine.setAlpha(255);
             canvas.drawLine(0, START_Y, width, START_Y, paintLine);
@@ -511,10 +508,10 @@ public class GraphComponent extends TextureView implements TextureView.SurfaceTe
                 if (i == redrawPos && redrawGraph && changeHeightMultiplier > 0 && changeHeightMultiplier <= 1f)
                     paint.setAlpha((int) (255 * changeHeightMultiplier));
 
-                path.moveTo(latestX, START_Y + modelChart.getColumnInt(i, 1) * newHeightPerUser);
+                path.moveTo(latestX, START_Y + modelChart.getColumnInt(i, 1) * actualHeightPerUser);
 
                 for (int j = 2; j < modelChart.getColumns().get(0).size(); j++) {
-                    path.lineTo(latestX + widthPerSize, START_Y + modelChart.getColumnInt(i, j) * newHeightPerUser);
+                    path.lineTo(latestX + widthPerSize, START_Y + modelChart.getColumnInt(i, j) * actualHeightPerUser);
                     latestX = latestX + widthPerSize;
                 }
 
@@ -529,10 +526,10 @@ public class GraphComponent extends TextureView implements TextureView.SurfaceTe
 
                 paint.setAlpha(alpha);
 
-                path.moveTo(latestX, START_Y + modelChart.getColumnInt(redrawPos, 1) * newHeightPerUser);
+                path.moveTo(latestX, START_Y + modelChart.getColumnInt(redrawPos, 1) * actualHeightPerUser);
 
                 for (int j = 2; j < modelChart.getColumns().get(0).size(); j++) {
-                    path.lineTo(latestX + widthPerSize, START_Y + modelChart.getColumnInt(redrawPos, j) * newHeightPerUser);
+                    path.lineTo(latestX + widthPerSize, START_Y + modelChart.getColumnInt(redrawPos, j) * actualHeightPerUser);
                     latestX = latestX + widthPerSize;
                 }
 
@@ -620,13 +617,15 @@ public class GraphComponent extends TextureView implements TextureView.SurfaceTe
     public void run() {
         while (threadRunning) {
             if (startDraw || touched || dateAnimate || animation) {
-                if (!block) {
+//                if (!block) {
                     long startFrame = System.currentTimeMillis();
 
                     Canvas canvas = mSurface.lockCanvas(null);
                     synchronized (mSurface) {
                         if (data != null) {
                             canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
+
+                            actualHeightPerUser = calculateAnimatedHeight(data);
 
                             if (touched) {
                                 drawVertLine(canvas, data);
@@ -653,7 +652,7 @@ public class GraphComponent extends TextureView implements TextureView.SurfaceTe
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
-                }
+//                }
             }
         }
     }
