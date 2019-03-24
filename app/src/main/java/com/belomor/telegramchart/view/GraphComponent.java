@@ -191,7 +191,7 @@ public class GraphComponent extends TextureView implements TextureView.SurfaceTe
 
 
     private float calculateAnimatedHeight(ModelChart modelChart) {
-        changeHeightMultiplier += 0.033f;
+        changeHeightMultiplier += 0.02f;
         if (changeHeightMultiplier >= 1f)
             changeHeightMultiplier = 1f;
         int maxValue = 0;
@@ -213,13 +213,16 @@ public class GraphComponent extends TextureView implements TextureView.SurfaceTe
             this.maxValue = maxValue;
             redrawGraph = false;
             redrawPos = -1;
-            startDraw = false;
+            startDraw = true;
         }
 
         return returnedValue;
     }
 
     private void drawData(Canvas canvas, ModelChart modelChart) {
+        if (animation)
+            return;
+
         startDraw = true;
 
         block = true;
@@ -274,8 +277,6 @@ public class GraphComponent extends TextureView implements TextureView.SurfaceTe
                 canvas.drawPath(path, paint);
             }
         }
-
-        drawValues(canvas, modelChart);
 
         block = false;
 
@@ -618,7 +619,7 @@ public class GraphComponent extends TextureView implements TextureView.SurfaceTe
     @Override
     public void run() {
         while (threadRunning) {
-            if (startDraw || touched || dateAnimate) {
+            if (startDraw || touched || dateAnimate || animation) {
                 if (!block) {
                     long startFrame = System.currentTimeMillis();
 
@@ -635,13 +636,17 @@ public class GraphComponent extends TextureView implements TextureView.SurfaceTe
                                 drawDataAnimate(canvas, data);
                             }
 
+                            drawValues(canvas, data);
+
                             drawDates(canvas, data);
                         }
                     }
 
-                    mSurface.unlockCanvasAndPost(canvas);
+                    long finalFrameMs = System.currentTimeMillis() - startFrame;
 
-                    long msDelay = 4;
+                    long msDelay = finalFrameMs > 6 ? 1 : 6 - finalFrameMs;
+
+                    mSurface.unlockCanvasAndPost(canvas);
 
                     try {
                         Thread.sleep(msDelay);
