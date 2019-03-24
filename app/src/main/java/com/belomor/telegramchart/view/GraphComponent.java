@@ -1,5 +1,9 @@
 package com.belomor.telegramchart.view;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
+import android.animation.ObjectAnimator;
+import android.animation.ValueAnimator;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -85,6 +89,13 @@ public class GraphComponent extends TextureView implements TextureView.SurfaceTe
 
     private float startY;
 
+    private boolean dateAnimate = false;
+    private int dateAlpha = 0;
+    private int currentDenominator = -1;
+    private int actualDenominator = -1;
+
+    private ValueAnimator valueAnimatorDate;
+
     private boolean threadRunning;
 
 
@@ -135,6 +146,36 @@ public class GraphComponent extends TextureView implements TextureView.SurfaceTe
         paintVertLine.setColor(ContextCompat.getColor(getContext(), GlobalManager.nightMode ? R.color.chart_line_dark : R.color.chart_line_light));
     }
 
+    private void startDateAnimation(int toAlpha) {
+        if (valueAnimatorDate != null && valueAnimatorDate.isRunning())
+            valueAnimatorDate.cancel();
+
+        valueAnimatorDate = ObjectAnimator.ofInt(dateAlpha, toAlpha);
+        valueAnimatorDate.addUpdateListener(animation -> {
+            dateAnimate = true;
+            dateAlpha = (int) animation.getAnimatedValue();
+        });
+
+        valueAnimatorDate.addListener(new AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationCancel(Animator animation) {
+                super.onAnimationCancel(animation);
+                currentDenominator = actualDenominator;
+                dateAnimate = false;
+            }
+
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                super.onAnimationEnd(animation);
+                currentDenominator = actualDenominator;
+                dateAnimate = false;
+            }
+        });
+
+        valueAnimatorDate.setDuration(300);
+        valueAnimatorDate.start();
+    }
+
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
@@ -172,7 +213,7 @@ public class GraphComponent extends TextureView implements TextureView.SurfaceTe
 
 
     private float calculateAnimatedHeight(ModelChart modelChart) {
-        changeHeightMultiplier += 0.02f;
+        changeHeightMultiplier += 0.025f;
         if (changeHeightMultiplier >= 1f)
             changeHeightMultiplier = 1f;
         int maxValue = 0;
@@ -256,7 +297,6 @@ public class GraphComponent extends TextureView implements TextureView.SurfaceTe
             }
         }
 
-        drawDates(canvas, modelChart);
         drawValues(canvas, modelChart);
 
         block = false;
@@ -351,17 +391,52 @@ public class GraphComponent extends TextureView implements TextureView.SurfaceTe
 
         int denominator = calculateDenominator();
 
+        if (currentDenominator == -1) {
+            currentDenominator = denominator;
+        }
+        actualDenominator = denominator;
+
         paintText.setTextAlign(Paint.Align.RIGHT);
 
         for (int i = 1; i <= itemsDate; i++) {
-            if (i % denominator == 0) {
-                int pos = i - 2;
-                long date = data.getColumnLong(0, pos);
-                Date result = new Date(date);
-                String text = simple.format(result);
-                canvas.drawText(text, offsetX + widthPerSize * (i - 1), height - TEXT_SIZE + 15, paintText);
+            if (actualDenominator == currentDenominator) {
+                if (i % denominator == 0) {
+                    int pos = i - 2;
+                    long date = data.getColumnLong(0, pos);
+                    Date result = new Date(date);
+                    String text = simple.format(result);
+                    canvas.drawText(text, offsetX + widthPerSize * (i - 1), height - TEXT_SIZE + 15, paintText);
+                }
+            } else {
+                if (!dateAnimate) {
+                    dateAnimate = true;
+                    int toAlpha = actualDenominator < currentDenominator ? 255 : 0;
+                    dateAlpha = 255 - toAlpha;
+                    post(() -> startDateAnimation(toAlpha));
+                }
+
+                int firstDenominator = actualDenominator > currentDenominator ? actualDenominator : currentDenominator;
+                int secondDenominator = actualDenominator < currentDenominator ? actualDenominator : currentDenominator;
+
+                paintText.setAlpha(255);
+                if (i % firstDenominator == 0) {
+                    int pos = i - 2;
+                    long date = data.getColumnLong(0, pos);
+                    Date result = new Date(date);
+                    String text = simple.format(result);
+                    canvas.drawText(text, offsetX + widthPerSize * (i - 1), height - TEXT_SIZE + 15, paintText);
+                } else if (i % secondDenominator == 0) {
+                    paintText.setAlpha(255);
+                    int pos = i - 2;
+                    long date = data.getColumnLong(0, pos);
+                    Date result = new Date(date);
+                    String text = simple.format(result);
+                    paintText.setAlpha(dateAlpha);
+                    canvas.drawText(text, offsetX + widthPerSize * (i - 1), height - TEXT_SIZE + 15, paintText);
+                }
             }
         }
+
         canvas.restore();
     }
 
@@ -486,7 +561,6 @@ public class GraphComponent extends TextureView implements TextureView.SurfaceTe
             }
         }
 
-        drawDates(canvas, modelChart);
         drawValues(canvas, modelChart);
 
         block = false;
@@ -565,14 +639,16 @@ public class GraphComponent extends TextureView implements TextureView.SurfaceTe
     @Override
     public void run() {
         while (threadRunning) {
-            if (startDraw || touched) {
+            if (startDraw || touched || dateAnimate || animation) {
                 if (!block) {
                     long startFrame = System.currentTimeMillis();
 
                     Canvas canvas = mSurface.lockCanvas(null);
                     synchronized (mSurface) {
-                        if (data != null && height > 0 && width > 0 && end > 0) {
+                        if (data != null) {
                             canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
+
+                            drawDates(canvas, data);
                             if (touched) {
                                 drawVertLine(canvas, data);
                             } else if (!animation) {
@@ -587,7 +663,8 @@ public class GraphComponent extends TextureView implements TextureView.SurfaceTe
 
                     long finalFrameMs = System.currentTimeMillis() - startFrame;
 
-                    long msDelay = finalFrameMs > 10 ? 1 : 10 - finalFrameMs;
+//                    long msDelay = finalFrameMs > 6 ? 1 : 6 - finalFrameMs;
+                    long msDelay = 1;
 
                     try {
                         Thread.sleep(msDelay);
