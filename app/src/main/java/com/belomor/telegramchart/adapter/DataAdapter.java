@@ -8,7 +8,7 @@ import android.view.ViewGroup;
 import android.widget.CheckBox;
 import android.widget.TextView;
 
-import com.belomor.telegramchart.ThemeManager;
+import com.belomor.telegramchart.manager.ThemeManager;
 import com.belomor.telegramchart.GraphViewListener;
 import com.belomor.telegramchart.R;
 import com.belomor.telegramchart.data.ModelChart;

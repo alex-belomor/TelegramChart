@@ -1,4 +1,4 @@
-package com.belomor.telegramchart.view;
+package com.belomor.telegramchart.view.graph;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
@@ -17,7 +17,7 @@ import android.view.Surface;
 import android.view.TextureView;
 
 import com.belomor.telegramchart.BelomorUtil;
-import com.belomor.telegramchart.ThemeManager;
+import com.belomor.telegramchart.manager.ThemeManager;
 import com.belomor.telegramchart.GraphTouchListener;
 import com.belomor.telegramchart.R;
 import com.belomor.telegramchart.data.ModelChart;

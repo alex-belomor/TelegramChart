@@ -5,7 +5,7 @@
     android:layout_height="@dimen/graph_seek_heigh"
     android:orientation="vertical">
 
-    <com.belomor.telegramchart.view.SeekView
+    <com.belomor.telegramchart.view.graph.SeekView
         android:id="@+id/graph_seek_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />

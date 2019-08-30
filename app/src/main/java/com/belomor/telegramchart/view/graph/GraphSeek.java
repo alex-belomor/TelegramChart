@@ -1,4 +1,4 @@
-package com.belomor.telegramchart.view;
+package com.belomor.telegramchart.view.graph;
 
 import android.content.Context;
 import android.graphics.drawable.ColorDrawable;
@@ -9,7 +9,7 @@ import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 
-import com.belomor.telegramchart.ThemeManager;
+import com.belomor.telegramchart.manager.ThemeManager;
 import com.belomor.telegramchart.R;
 import com.belomor.telegramchart.SeekListener;
 import com.belomor.telegramchart.data.ModelChart;

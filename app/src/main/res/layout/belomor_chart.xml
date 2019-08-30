@@ -18,13 +18,13 @@
         android:textSize="@dimen/text_medium"
         android:textStyle="bold" />
 
-    <com.belomor.telegramchart.view.GraphComponent
+    <com.belomor.telegramchart.view.graph.GraphComponent
         android:id="@+id/graph_component"
         android:layout_width="match_parent"
         android:layout_height="@dimen/chart_height"
         android:layerType="hardware" />
 
-    <com.belomor.telegramchart.view.GraphSeek
+    <com.belomor.telegramchart.view.graph.GraphSeek
         android:id="@+id/graph_seek"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

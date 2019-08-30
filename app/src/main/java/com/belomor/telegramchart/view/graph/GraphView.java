@@ -1,4 +1,4 @@
-package com.belomor.telegramchart.view;
+package com.belomor.telegramchart.view.graph;
 
 import android.content.Context;
 import android.graphics.Color;
@@ -12,7 +12,7 @@ import android.widget.PopupWindow;
 import android.widget.TextView;
 
 import com.belomor.telegramchart.BelomorUtil;
-import com.belomor.telegramchart.ThemeManager;
+import com.belomor.telegramchart.manager.ThemeManager;
 import com.belomor.telegramchart.GraphTouchListener;
 import com.belomor.telegramchart.ItemDivider;
 import com.belomor.telegramchart.R;

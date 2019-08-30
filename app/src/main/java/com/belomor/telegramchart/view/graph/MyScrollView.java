@@ -1,4 +1,4 @@
-package com.belomor.telegramchart.view;
+package com.belomor.telegramchart.view.graph;
 
 import android.content.Context;
 import android.util.AttributeSet;

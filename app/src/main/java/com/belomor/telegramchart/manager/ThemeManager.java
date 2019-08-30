@@ -1,4 +1,4 @@
-package com.belomor.telegramchart;
+package com.belomor.telegramchart.manager;
 
 import android.view.View;
 
